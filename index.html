@@ -408,16 +408,20 @@ function geolocate(){
       nm.textContent=userAddr;sub.textContent=`${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;dot.className='gps-dot';
     }catch{userAddr=`${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;nm.textContent=userAddr;dot.className='gps-dot'}
     syncRecojoGPS();
-  },()=>setGeoError(),{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  },err=>{
+    const msgs={1:'Permiso denegado — actívalo en ajustes',2:'No se pudo obtener GPS',3:'Tiempo agotado'};
+    setGeoError(msgs[err.code]||'Error de GPS');
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 function syncRecojoGPS(){
   const dot=document.getElementById('rec-loc-dot'),nm=document.getElementById('rec-loc-name'),sub=document.getElementById('rec-loc-sub');
   if(!dot)return;
   dot.className='gps-dot';nm.textContent=userAddr||'GPS activo';if(sub)sub.textContent=`${userLat?.toFixed(4)}, ${userLon?.toFixed(4)}`;
 }
-function setGeoError(){
+function setGeoError(msg){
   ['loc-dot','rec-loc-dot'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='gps-dot error'});
-  const nm=document.getElementById('loc-name');if(nm)nm.textContent='Permiso denegado';
+  const nm=document.getElementById('loc-name');if(nm)nm.textContent=msg||'GPS no disponible';
+  const sub=document.getElementById('loc-sub');if(sub)sub.textContent='Toca ↺ o cambia a "Escribir"';
   const retry=document.getElementById('loc-retry');if(retry)retry.style.display='block';
 }
 function setVoyOrigin(m){
@@ -541,6 +545,9 @@ function renderVerdict(data){
   }
 }
 
+// Estado independiente por opción
+const rtState={auto:false,uber:false,cab:false,taxi:false};
+
 function buildM1Cards(data){
   return'<div class="m1-cards">'+[
     {k:'auto',n:'Mi auto',ic:'ic-auto',em:'🚗',action:'maps'},
@@ -553,9 +560,12 @@ function buildM1Cards(data){
     if(action==='uber')aBtn=`<button class="mini-btn" onclick="lanzarUber()">Pedir →</button>`;
     else if(action==='cabify')aBtn=`<button class="mini-btn" onclick="lanzarCabify()">Abrir →</button>`;
     else if(action==='maps')aBtn=`<button class="mini-btn" onclick="abrirMaps()">Ruta →</button>`;
+    const isRT=rtState[k]||false;
+    const rtSubOpen=(rtState[k]&&k!=='auto')?'open':'';
+    const tMode=taxiModes[k]||'dos';
     let rtPanel='';
-    if(k!=='auto')rtPanel=`<div class="rt-opts" id="m1-rtsub-${k}"><div class="mode-pills"><button class="mpill active" id="m1-togdos-${k}" onclick="setM1TMode('${k}','dos')">2 viajes</button><button class="mpill" id="m1-togesp-${k}" onclick="setM1TMode('${k}','espera')">Espera</button></div><div class="time-inputs" id="m1-tinp-${k}"><div class="time-col"><label>Hora ida</label><input type="time" id="m1-hi-${k}" value="09:00" onchange="refresh()"></div><div class="time-col"><label>Regreso</label><input type="time" id="m1-hr-${k}" value="10:30" onchange="refresh()"></div></div></div>`;
-    return`<div class="m1-card"><div class="m1-top"><div class="rcard-icon ${ic}">${em}</div><div class="m1-info"><div class="rcard-name">${n}</div><div class="rcard-detail" id="m1-det-${k}">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price" id="m1-pr-${k}">${ps}<span class="su">soles</span></div>${aBtn}</div></div><div class="m1-footer"><label class="rt-check-label"><input type="checkbox" id="m1-rt-${k}" onchange="toggleM1RT('${k}')"> Ida y vuelta</label></div>${rtPanel}</div>`;
+    if(k!=='auto')rtPanel=`<div class="rt-opts ${rtSubOpen}" id="m1-rtsub-${k}"><div class="mode-pills"><button class="mpill ${tMode==='dos'?'active':''}" id="m1-togdos-${k}" onclick="setM1TMode('${k}','dos')">2 viajes</button><button class="mpill ${tMode==='espera'?'active':''}" id="m1-togesp-${k}" onclick="setM1TMode('${k}','espera')">Espera</button></div><div class="time-inputs ${tMode==='espera'?'open':''}" id="m1-tinp-${k}"><div class="time-col"><label>Hora ida</label><input type="time" id="m1-hi-${k}" value="09:00" onchange="refresh()"></div><div class="time-col"><label>Regreso</label><input type="time" id="m1-hr-${k}" value="10:30" onchange="refresh()"></div></div></div>`;
+    return`<div class="m1-card"><div class="m1-top"><div class="rcard-icon ${ic}">${em}</div><div class="m1-info"><div class="rcard-name">${n}</div><div class="rcard-detail" id="m1-det-${k}">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price" id="m1-pr-${k}">${ps}<span class="su">soles</span></div>${aBtn}</div></div><div class="m1-footer"><label class="rt-check-label"><input type="checkbox" id="m1-rt-${k}" ${isRT?'checked':''} onchange="toggleM1RT('${k}')"> Ida y vuelta</label></div>${rtPanel}</div>`;
   }).join('')+'</div>';
 }
 
@@ -575,9 +585,48 @@ function buildRecojoCards(data){
   }).join('')+'</div>';
 }
 
-function toggleM1RT(k){document.getElementById('m1-rtsub-'+k)?.classList.toggle('open',document.getElementById('m1-rt-'+k).checked);refresh()}
-function setM1TMode(k,mode){taxiModes[k]=mode;document.getElementById('m1-togdos-'+k).classList.toggle('active',mode==='dos');document.getElementById('m1-togesp-'+k).classList.toggle('active',mode==='espera');document.getElementById('m1-tinp-'+k).classList.toggle('open',mode==='espera');refresh()}
-function refresh(){if(distVial>0&&modo==='voy')renderVoy(distVial)}
+function toggleM1RT(k){
+  rtState[k]=document.getElementById('m1-rt-'+k).checked;
+  document.getElementById('m1-rtsub-'+k)?.classList.toggle('open',rtState[k]);
+  refresh();
+}
+function setM1TMode(k,mode){
+  taxiModes[k]=mode;
+  document.getElementById('m1-togdos-'+k).classList.toggle('active',mode==='dos');
+  document.getElementById('m1-togesp-'+k).classList.toggle('active',mode==='espera');
+  document.getElementById('m1-tinp-'+k).classList.toggle('open',mode==='espera');
+  refresh();
+}
+function refresh(){
+  if(!distVial||modo!=='voy')return;
+  // Recalcular sin re-renderizar el DOM completo
+  const dist=distVial;
+  const autoKm=dist*(rtState.auto?2:1);
+  const data={auto:{single:calcAuto(autoKm),min:calcAuto(autoKm),max:null,detalle:`${autoKm.toFixed(1)} km · S/${getRatio().toFixed(2)}/km`+(rtState.auto?' · ida y vuelta':' · solo ida')}};
+  ['uber','cab','taxi'].forEach(k=>{
+    const rt=rtState[k]||false;
+    const mode=taxiModes[k]||'dos';
+    let pr,detalle;
+    if(!rt){pr=pTaxi(k,dist);detalle=`${dist.toFixed(1)} km · solo ida`}
+    else if(mode==='dos'){pr=pTaxi(k,dist*2);detalle=`${(dist*2).toFixed(1)} km · 2 viajes`}
+    else{
+      const esp=minsB(document.getElementById(`m1-hi-${k}`)?.value||'09:00',document.getElementById(`m1-hr-${k}`)?.value||'10:30');
+      const base=k==='uber'?3.5+dist*1.8+1.2:k==='cab'?4.0+dist*1.9+1.0:3.0+dist*2.0;
+      const tot=base*2+(esp/60)*18;pr={min:Math.round(tot*.9),max:Math.round(tot*1.1)};
+      const h=Math.floor(esp/60),m=esp%60;detalle=`${(dist*2).toFixed(1)} km · espera ${h>0?h+'h ':''}${m}min`;
+    }
+    data[k]={...pr,single:null,detalle};
+  });
+  // Solo actualizar precios y detalles, sin tocar checkboxes
+  ['auto','uber','cab','taxi'].forEach(k=>{
+    const pr=document.getElementById('m1-pr-'+k);
+    const det=document.getElementById('m1-det-'+k);
+    const d=data[k];
+    if(pr)pr.innerHTML=(d.single!==null?`S/ ${d.single}`:`S/ ${d.min}–${d.max}`)+'<span class="su">soles</span>';
+    if(det)det.textContent=d.detalle;
+  });
+  renderVerdict(data);
+}
 function toggleDesglose(){desgloseOpen=!desgloseOpen;document.getElementById('desglose-panel').classList.toggle('open',desgloseOpen);document.getElementById('des-arrow').textContent=desgloseOpen?'▴':'▾';document.getElementById('des-label').textContent=desgloseOpen?'Ocultar desglose':'Ver desglose por opción'}
 function showErr(msg){const e=document.getElementById('err-msg');e.textContent=msg;e.style.display='block'}
 
