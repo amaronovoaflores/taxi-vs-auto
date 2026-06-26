@@ -744,8 +744,28 @@ function lanzarUberBC(){
   if(window.sendPrompt)window.sendPrompt(`Pedir un Uber desde ${b} hasta ${c}`);
   else window.open(`https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(b)}&dropoff[formatted_address]=${encodeURIComponent(c)}`,'_blank');
 }
-function lanzarCabify(){const o=voyOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('voy-origen-manual').value+', Lima, Peru');window.open(`https://cabify.com/ride?origin=${o}&destination=${encodeURIComponent(document.getElementById('voy-destino').value+', Lima, Peru')}`,'_blank')}
-function lanzarCabifyBC(){window.open(`https://cabify.com/ride?origin=${encodeURIComponent(document.getElementById('rec-b').value+', Lima, Peru')}&destination=${encodeURIComponent(document.getElementById('rec-c').value+', Lima, Peru')}`,'_blank')}
+function abrirCabifyURL(originStr, destStr){
+  // Intenta abrir app nativa primero, fallback a web
+  const params=`origin=${encodeURIComponent(originStr)}&destination=${encodeURIComponent(destStr)}`;
+  const appURL=`cabify://cabify.com/ride?${params}`;
+  const webURL=`https://cabify.com/ride?${params}`;
+  // Trick: intenta el scheme nativo, si no abre en 1.5s va a web
+  const start=Date.now();
+  window.location.href=appURL;
+  setTimeout(()=>{
+    if(Date.now()-start<2000) window.open(webURL,'_blank');
+  },1500);
+}
+function lanzarCabify(){
+  const orig=voyOMode==='gps'&&userLat?`${userLat},${userLon}`:document.getElementById('voy-origen-manual').value+', Lima, Peru';
+  const dest=document.getElementById('voy-destino').value+', Lima, Peru';
+  abrirCabifyURL(orig,dest);
+}
+function lanzarCabifyBC(){
+  const orig=document.getElementById('rec-b').value+', Lima, Peru';
+  const dest=document.getElementById('rec-c').value+', Lima, Peru';
+  abrirCabifyURL(orig,dest);
+}
 function abrirMaps(){const o=voyOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('voy-origen-manual').value+', Lima, Peru');window.open(`https://www.google.com/maps/dir/${o}/${encodeURIComponent(document.getElementById('voy-destino').value+', Lima, Peru')}`,'_blank')}
 function abrirMapsABC(){
   const a=recOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('rec-a-manual').value+', Lima, Peru');
