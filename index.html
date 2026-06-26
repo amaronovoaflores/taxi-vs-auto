@@ -548,6 +548,40 @@ function pTaxi(key,km){
 }
 function minsB(t1,t2){const[h1,m1]=t1.split(':').map(Number),[h2,m2]=t2.split(':').map(Number);return Math.max(0,(h2*60+m2)-(h1*60+m1))}
 
+function getDepartureTime(inputId){
+  const val=document.getElementById(inputId)?.value;
+  if(!val)return new Date();
+  const [h,m]=val.split(':').map(Number);
+  const d=new Date();
+  d.setHours(h,m,0,0);
+  if(d<new Date())d.setDate(d.getDate()+1);
+  return d;
+}
+
+function setHoraAhora(){
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const el=document.getElementById('hora-salida');
+  if(el)el.value=`${hh}:${mm}`;
+  const badge=document.getElementById('traffic-badge');
+  if(badge){badge.className='traffic-badge live';badge.textContent='🟢 Tráfico en vivo';}
+  const btn=document.getElementById('hora-now-btn');
+  if(btn)btn.classList.add('active');
+}
+
+function setHoraRetornoAhora(){
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const el=document.getElementById('hora-retorno');
+  if(el)el.value=`${hh}:${mm}`;
+  const badge=document.getElementById('traffic-ret-badge');
+  if(badge){badge.className='traffic-badge live';badge.textContent='🟢 Tráfico en vivo';}
+  const btn=document.getElementById('hora-ret-now-btn');
+  if(btn)btn.classList.add('active');
+}
+
 async function calcular(){
   document.getElementById('err-msg').style.display='none';
   const btn=document.getElementById('calc-btn');
