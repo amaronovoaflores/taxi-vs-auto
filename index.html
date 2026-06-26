@@ -54,8 +54,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .cfg-ratio strong{color:var(--yellow);font-size:14px}
 
 .modo-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.mtab{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;line-height:1.5;transition:all .2s}
-.mtab .mtab-icon{font-size:20px;display:block;margin-bottom:4px}
+.mtab{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;text-align:center;line-height:1.4;transition:all .2s}
+.mtab .mtab-icon{font-size:20px;display:inline;margin-right:6px}
 .mtab.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
 
 .slabel{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -215,8 +215,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
   </div>
 
   <div class="modo-tabs">
-    <button class="mtab active" id="mtab-voy" onclick="setModo('voy')"><span class="mtab-icon">🧭</span>Voy yo a un lugar</button>
-    <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')"><span class="mtab-icon">👤</span>Recoger vs taxi</button>
+    <button class="mtab active" id="mtab-voy" onclick="setModo('voy')"><span class="mtab-icon">🧭</span> Voy</button>
+    <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')"><span class="mtab-icon">👤</span> Recoger</button>
   </div>
   <div id="modo-desc" style="font-size:11px;color:var(--text2);margin-bottom:14px;line-height:1.7;padding:0 2px"></div>
 
@@ -228,12 +228,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
       <button class="otab" id="vtab-manual" onclick="setVoyOrigin('manual')">✏️ Escribir</button>
     </div>
     <div id="voy-gps-block">
-      <div class="gps-block">
-        <div class="gps-dot loading" id="loc-dot"></div>
-        <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
-        <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="gps-block" style="flex:1;margin-bottom:0">
+          <div class="gps-dot loading" id="loc-dot"></div>
+          <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
+          <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
+        </div>
+        <button class="save-btn" onclick="toggleSave('gps-save','__gps__')" title="Guardar ubicación actual">🔖</button>
+      </div>
+      <div class="save-panel" id="gps-save">
+        <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
+        <div class="save-inner"><input type="text" id="gps-save-name" placeholder="Ej: Casa, Oficina, Casa mamá..."><button class="save-ok" onclick="guardarGPS()">✓</button></div>
       </div>
     </div>
+    <div class="chips" id="gps-chips" style="margin-bottom:8px"></div>
     <div id="voy-manual-block" style="display:none;margin-bottom:8px">
       <input type="text" class="field-input" id="voy-origen-manual" placeholder="Ej: San Isidro, Lima">
     </div>
@@ -260,9 +268,16 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
       <button class="otab" id="rtab-manual" onclick="setRecojoOrigin('manual')">✏️ Escribir</button>
     </div>
     <div id="rec-gps-block" style="margin-bottom:8px">
-      <div class="gps-block">
-        <div class="gps-dot loading" id="rec-loc-dot"></div>
-        <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="gps-block" style="flex:1;margin-bottom:0">
+          <div class="gps-dot loading" id="rec-loc-dot"></div>
+          <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
+        </div>
+        <button class="save-btn" onclick="toggleSave('gps-save','__gps__')" title="Guardar ubicación actual">🔖</button>
+      </div>
+      <div class="save-panel" id="gps-save-rec" style="margin-top:6px">
+        <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
+        <div class="save-inner"><input type="text" id="gps-save-name-rec" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardarGPS()">✓</button></div>
       </div>
     </div>
     <div id="rec-manual-block" style="display:none;margin-bottom:8px">
@@ -587,7 +602,52 @@ function abrirMapsABC(){
   window.open(`https://www.google.com/maps/dir/${a}/${b}/${c}`,'_blank');
 }
 
-setModo('voy');loadSaved();geolocate();
+
+function guardarGPS(){
+  if(userLat===null){showErr('GPS no disponible todavía.');return}
+  const nameEl=document.getElementById('gps-save-name')||document.getElementById('gps-save-name-rec');
+  const name=nameEl?nameEl.value.trim():'';
+  if(!name)return;
+  const address=userAddr||`${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
+  // Guardamos como lugar especial con coordenadas
+  const entry={name, address, lat:userLat, lon:userLon};
+  const idx=saved.voy.findIndex(d=>d.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0)saved.voy[idx]=entry; else saved.voy.push(entry);
+  // También en recB y recC como opción
+  saveToDisk();
+  renderChips('gps-chips', saved.voy.filter(d=>d.lat), 'voy-destino');
+  renderGPSChips();
+  document.querySelectorAll('.save-panel').forEach(p=>p.classList.remove('open'));
+  if(nameEl)nameEl.value='';
+}
+
+function renderGPSChips(){
+  const gpsPlaces=saved.voy.filter(d=>d.lat);
+  const el=document.getElementById('gps-chips');
+  if(!el||!gpsPlaces.length)return;
+  el.innerHTML=gpsPlaces.map((d,i)=>`<div class="chip" onclick="loadGPSPlace(${i})">📍 ${d.name}<button class="chip-x" onclick="delGPSChip(event,${i})">×</button></div>`).join('');
+}
+
+function loadGPSPlace(i){
+  const gpsPlaces=saved.voy.filter(d=>d.lat);
+  const p=gpsPlaces[i];
+  if(!p)return;
+  // Usar como origen manual
+  setVoyOrigin('manual');
+  const el=document.getElementById('voy-origen-manual');
+  if(el)el.value=p.address;
+  userAddr=p.address;
+}
+
+function delGPSChip(e,i){
+  e.stopPropagation();
+  const gpsPlaces=saved.voy.filter(d=>d.lat);
+  const name=gpsPlaces[i]?.name;
+  saved.voy=saved.voy.filter(d=>d.name!==name);
+  saveToDisk();renderGPSChips();
+}
+
+setModo('voy');loadSaved();renderGPSChips();geolocate();
 </script>
 </body>
 </html>
