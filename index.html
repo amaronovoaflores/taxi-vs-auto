@@ -245,7 +245,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
           <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
           <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
         </div>
-        <button class="save-btn" onclick="toggleSave('gps-save','__gps__')" title="Guardar ubicación actual">🔖</button>
+        <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación actual">🔖</button>
       </div>
       <div class="save-panel" id="gps-save">
         <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
@@ -284,7 +284,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
           <div class="gps-dot loading" id="rec-loc-dot"></div>
           <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
         </div>
-        <button class="save-btn" onclick="toggleSave('gps-save','__gps__')" title="Guardar ubicación actual">🔖</button>
+        <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación actual">🔖</button>
       </div>
       <div class="save-panel" id="gps-save-rec" style="margin-top:6px">
         <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
@@ -390,9 +390,19 @@ function delChip(e,cid,i){
   renderChips(cid,saved[key],cid==='voy-chips'?'voy-destino':cid==='rec-b-chips'?'rec-b':'rec-c');
 }
 function toggleSave(pid,inputId){
-  const v=document.getElementById(inputId).value.trim();
+  const el=document.getElementById(inputId);
+  const v=el?el.value.trim():'';
   if(!v){showErr('Escribe un lugar primero.');return}
   const panel=document.getElementById(pid);
+  if(!panel)return;
+  const isOpen=panel.classList.contains('open');
+  document.querySelectorAll('.save-panel').forEach(p=>p.classList.remove('open'));
+  if(!isOpen)panel.classList.add('open');
+}
+function toggleSaveGPS(pid){
+  if(userLat===null){showErr('GPS no disponible todavía.');return}
+  const panel=document.getElementById(pid);
+  if(!panel)return;
   const isOpen=panel.classList.contains('open');
   document.querySelectorAll('.save-panel').forEach(p=>p.classList.remove('open'));
   if(!isOpen)panel.classList.add('open');
