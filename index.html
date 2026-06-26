@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0F0F1A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="¿Auto o Taxi?">
+<title>¿Auto o Taxi? · Lima</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0F1A;
+  --bg2:#181828;
+  --bg3:#1E1E32;
+  --border:#2A2A42;
+  --text:#F0F0FF;
+  --text2:#8888AA;
+  --yellow:#F5C842;
+  --green:#4ADE80;
+  --blue:#38BDF8;
+  --red:#F87171;
+  --yellow-bg:rgba(245,200,66,0.10);
+  --green-bg:rgba(74,222,128,0.10);
+  --blue-bg:rgba(56,189,248,0.10);
+  --red-bg:rgba(248,113,113,0.10);
+  --radius:14px;
+  --radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+.app{max-width:420px;margin:0 auto;padding:20px 16px 40px}
+
+.app-header{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.app-icon{width:38px;height:38px;background:var(--yellow);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.app-title{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.app-title span{color:var(--yellow)}
+
+.config-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.config-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
+.config-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfg-field label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
+.cfg-input-wrap{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:border-color .2s}
+.cfg-input-wrap:focus-within{border-color:var(--yellow)}
+.cfg-input-wrap input{flex:1;background:none;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;font-weight:700;padding:8px 10px;width:0;min-width:0}
+.cfg-input-wrap input:focus{outline:none}
+.cfg-unit{font-size:10px;color:var(--text2);padding:0 8px 0 0;white-space:nowrap}
+.cfg-prefix{font-size:12px;color:var(--text2);padding:0 0 0 10px;white-space:nowrap}
+.cfg-ratio{margin-top:10px;font-size:12px;color:var(--text2);text-align:center;border-top:1px solid var(--border);padding-top:10px}
+.cfg-ratio strong{color:var(--yellow);font-size:14px}
+
+.modo-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.mtab{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;line-height:1.5;transition:all .2s}
+.mtab .mtab-icon{font-size:20px;display:block;margin-bottom:4px}
+.mtab.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+
+.slabel{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.punto-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700}
+.pb-a{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)}
+.pb-b{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow)}
+.pb-c{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+
+.origin-tabs{display:flex;gap:6px;margin-bottom:8px}
+.otab{flex:1;padding:7px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:all .2s}
+.otab.active{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.gps-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.gps-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.gps-dot.loading{background:var(--yellow);animation:blink 1s infinite}
+.gps-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.gps-text{flex:1}
+.gps-name{font-size:13px;font-weight:600;color:var(--text)}
+.gps-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.retry-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
+
+.input-block{margin-bottom:12px}
+.input-wrap{display:flex;gap:8px;align-items:center}
+.field-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;padding:11px 14px;transition:border-color .2s;width:100%}
+.field-input:focus{outline:none;border-color:var(--yellow)}
+.field-input::placeholder{color:var(--text2)}
+.save-btn{width:40px;height:42px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;transition:all .2s;color:var(--text2)}
+.save-btn:hover,.save-btn.active{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-bg)}
+.save-panel{display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:6px}
+.save-panel.open{display:block}
+.save-inner{display:flex;gap:6px;margin-top:6px}
+.save-inner input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:7px 10px}
+.save-inner input:focus{outline:none;border-color:var(--green)}
+.save-ok{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:700;color:var(--green);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
+.save-ok:hover{background:var(--green);color:#000}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 11px;font-size:11px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--yellow);color:var(--yellow)}
+.chip-x{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;display:flex;padding:0;line-height:1}
+.chip-x:hover{color:var(--red)}
+
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+.calc-btn{width:100%;padding:14px;background:var(--yellow);border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:16px;font-weight:800;color:#0F0F1A;cursor:pointer;letter-spacing:-.2px;transition:all .2s;margin-top:4px}
+.calc-btn:hover{background:#FFD700}
+.calc-btn:active{transform:scale(.98)}
+.calc-btn:disabled{background:var(--bg3);color:var(--text2);cursor:not-allowed}
+
+.err-msg{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--red);margin-top:10px;display:none}
+
+.results{display:none;margin-top:8px}
+.results.show{display:block}
+
+.verdict-card{border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.verdict-card.v-taxi{background:linear-gradient(135deg,rgba(56,189,248,.15) 0%,rgba(56,189,248,.05) 100%);border:1.5px solid var(--blue)}
+.verdict-card.v-auto{background:linear-gradient(135deg,rgba(74,222,128,.15) 0%,rgba(74,222,128,.05) 100%);border:1.5px solid var(--green)}
+.verdict-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.v-taxi .verdict-tag{color:var(--blue)}
+.v-auto .verdict-tag{color:var(--green)}
+.verdict-main{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.verdict-left .v-label{font-size:11px;color:var(--text2);margin-bottom:2px}
+.verdict-left .v-decision{font-size:28px;font-weight:900;letter-spacing:-1px;line-height:1}
+.v-taxi .verdict-left .v-decision{color:var(--blue)}
+.v-auto .verdict-left .v-decision{color:var(--green)}
+.verdict-left .v-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.verdict-right .v-saving-label{font-size:10px;color:var(--text2);margin-bottom:1px;text-align:right}
+.verdict-right .v-saving-val{font-size:22px;font-weight:900;letter-spacing:-.5px}
+.v-taxi .verdict-right .v-saving-val{color:var(--blue)}
+.v-auto .verdict-right .v-saving-val{color:var(--green)}
+.verdict-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.vstat{background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:10px 12px}
+.vstat-label{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);margin-bottom:3px}
+.vstat-val{font-size:17px;font-weight:800;color:var(--text)}
+.verdict-tope{font-size:11px;color:var(--text2);background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:9px 11px;line-height:1.6;border-left:2px solid}
+.v-taxi .verdict-tope{border-left-color:var(--blue)}
+.v-auto .verdict-tope{border-left-color:var(--green)}
+.verdict-tope strong{color:var(--text)}
+
+.action-row{display:flex;gap:8px;margin-bottom:14px}
+.act-btn{flex:1;padding:11px 6px;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.act-btn:hover{border-color:var(--text2)}
+.act-btn.primary-blue{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.act-btn.primary-blue:hover{background:var(--blue);color:#000}
+.act-btn.primary-green{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.act-btn.primary-green:hover{background:var(--green);color:#000}
+
+.desglose-toggle{width:100%;background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;margin-bottom:6px;transition:color .2s}
+.desglose-toggle:hover{color:var(--text)}
+.desglose-panel{display:none}
+.desglose-panel.open{display:block}
+
+.route-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px}
+.rcard-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ic-auto{background:rgba(74,222,128,.12);color:var(--green)}
+.ic-uber{background:rgba(56,189,248,.12);color:var(--blue)}
+.ic-cab{background:rgba(245,200,66,.12);color:var(--yellow)}
+.ic-taxi{background:rgba(248,113,113,.12);color:var(--red)}
+.rcard-info{flex:1;min-width:0}
+.rcard-name{font-size:13px;font-weight:700;color:var(--text)}
+.rcard-detail{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.4}
+.rcard-right{display:flex;align-items:center;gap:6px}
+.rcard-price{font-size:17px;font-weight:900;color:var(--text);white-space:nowrap;text-align:right}
+.rcard-price .su{font-size:9px;color:var(--text2);display:block;margin-top:1px}
+.mini-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s}
+.mini-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+
+.m1-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.m1-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.m1-top{display:flex;align-items:center;gap:11px}
+.m1-info{flex:1;min-width:0}
+.m1-footer{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.rt-check-label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer}
+.rt-check-label input[type=checkbox]{accent-color:var(--yellow);width:14px;height:14px;cursor:pointer}
+.rt-opts{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.rt-opts.open{display:block}
+.mode-pills{display:flex;gap:6px;margin-bottom:8px}
+.mpill{flex:1;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:all .2s;font-family:'Inter',sans-serif}
+.mpill.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.time-inputs{display:none}
+.time-inputs.open{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.time-col label{font-size:10px;color:var(--text2);display:block;margin-bottom:4px}
+.time-col input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:7px 8px}
+.time-col input:focus{outline:none;border-color:var(--yellow)}
+.note{font-size:10px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-icon">🚕</div>
+    <div>
+      <div class="app-title">¿Auto o <span>Taxi</span>?</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:1px">Decide en segundos · Lima</div>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="config-label">🚗 Mi auto</div>
+    <div class="config-fields">
+      <div class="cfg-field">
+        <label>Rendimiento</label>
+        <div class="cfg-input-wrap">
+          <input type="number" id="cfg-km" value="200" min="50" max="600" step="10" oninput="onCfgChange()">
+          <span class="cfg-unit">km/tanque</span>
+        </div>
+      </div>
+      <div class="cfg-field">
+        <label>Costo tanque</label>
+        <div class="cfg-input-wrap">
+          <span class="cfg-prefix">S/</span>
+          <input type="number" id="cfg-sol" value="230" min="50" max="600" step="5" oninput="onCfgChange()">
+        </div>
+      </div>
+    </div>
+    <div class="cfg-ratio">Costo por km: <strong id="cfg-ratio-val">S/ 1.15</strong></div>
+  </div>
+
+  <div class="modo-tabs">
+    <button class="mtab active" id="mtab-voy" onclick="setModo('voy')"><span class="mtab-icon">🧭</span>Voy yo a un lugar</button>
+    <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')"><span class="mtab-icon">👤</span>Recoger vs taxi</button>
+  </div>
+  <div id="modo-desc" style="font-size:11px;color:var(--text2);margin-bottom:14px;line-height:1.7;padding:0 2px"></div>
+
+  <!-- MODO VOY -->
+  <div id="inputs-voy">
+    <div class="slabel">📍 Yo estoy en</div>
+    <div class="origin-tabs">
+      <button class="otab active" id="vtab-gps" onclick="setVoyOrigin('gps')">📡 GPS</button>
+      <button class="otab" id="vtab-manual" onclick="setVoyOrigin('manual')">✏️ Escribir</button>
+    </div>
+    <div id="voy-gps-block">
+      <div class="gps-block">
+        <div class="gps-dot loading" id="loc-dot"></div>
+        <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
+        <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
+      </div>
+    </div>
+    <div id="voy-manual-block" style="display:none;margin-bottom:8px">
+      <input type="text" class="field-input" id="voy-origen-manual" placeholder="Ej: San Isidro, Lima">
+    </div>
+    <div class="divider"></div>
+    <div class="slabel">📍 ¿A dónde vas?</div>
+    <div class="input-block">
+      <div class="input-wrap">
+        <input type="text" class="field-input" id="voy-destino" placeholder="Ej: Reunión en Miraflores" oninput="hideSave('vsp')">
+        <button class="save-btn" onclick="toggleSave('vsp','voy-destino')">🔖</button>
+      </div>
+      <div class="save-panel" id="vsp">
+        <div style="font-size:11px;color:var(--text2)">Guardar como:</div>
+        <div class="save-inner"><input type="text" id="vsp-name" placeholder="Ej: Oficina, Gym..."><button class="save-ok" onclick="guardar('vsp','voy-destino','vsp-name','voy-chips')">✓</button></div>
+      </div>
+      <div class="chips" id="voy-chips"></div>
+    </div>
+  </div>
+
+  <!-- MODO RECOJO -->
+  <div id="inputs-recojo" style="display:none">
+    <div class="slabel"><span class="punto-badge pb-a">A</span>&nbsp; Yo estoy en</div>
+    <div class="origin-tabs">
+      <button class="otab active" id="rtab-gps" onclick="setRecojoOrigin('gps')">📡 GPS</button>
+      <button class="otab" id="rtab-manual" onclick="setRecojoOrigin('manual')">✏️ Escribir</button>
+    </div>
+    <div id="rec-gps-block" style="margin-bottom:8px">
+      <div class="gps-block">
+        <div class="gps-dot loading" id="rec-loc-dot"></div>
+        <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
+      </div>
+    </div>
+    <div id="rec-manual-block" style="display:none;margin-bottom:8px">
+      <input type="text" class="field-input" id="rec-a-manual" placeholder="Ej: Casa de mamá, Miraflores">
+    </div>
+    <div class="divider"></div>
+    <div class="slabel"><span class="punto-badge pb-b">B</span>&nbsp; Ella/él está en</div>
+    <div class="input-block">
+      <div class="input-wrap">
+        <input type="text" class="field-input" id="rec-b" placeholder="Ej: Universidad de Lima" oninput="hideSave('bsp')">
+        <button class="save-btn" onclick="toggleSave('bsp','rec-b')">🔖</button>
+      </div>
+      <div class="save-panel" id="bsp">
+        <div style="font-size:11px;color:var(--text2)">Guardar como:</div>
+        <div class="save-inner"><input type="text" id="bsp-name" placeholder="Ej: Uni, Colegio..."><button class="save-ok" onclick="guardar('bsp','rec-b','bsp-name','rec-b-chips')">✓</button></div>
+      </div>
+      <div class="chips" id="rec-b-chips"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="slabel"><span class="punto-badge pb-c">C</span>&nbsp; Destino final</div>
+    <div class="input-block">
+      <div class="input-wrap">
+        <input type="text" class="field-input" id="rec-c" placeholder="Ej: Nuestra casa, San Borja" oninput="hideSave('csp')">
+        <button class="save-btn" onclick="toggleSave('csp','rec-c')">🔖</button>
+      </div>
+      <div class="save-panel" id="csp">
+        <div style="font-size:11px;color:var(--text2)">Guardar como:</div>
+        <div class="save-inner"><input type="text" id="csp-name" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardar('csp','rec-c','csp-name','rec-c-chips')">✓</button></div>
+      </div>
+      <div class="chips" id="rec-c-chips"></div>
+    </div>
+  </div>
+
+  <button class="calc-btn" id="calc-btn" onclick="calcular()">Calcular →</button>
+  <div class="err-msg" id="err-msg"></div>
+  <div class="divider"></div>
+
+  <div class="results" id="results">
+    <div id="verdict-block"></div>
+    <div class="action-row" id="action-row"></div>
+    <button class="desglose-toggle" onclick="toggleDesglose()">
+      <span id="des-arrow">▾</span> <span id="des-label">Ver desglose por opción</span>
+    </button>
+    <div class="desglose-panel" id="desglose-panel">
+      <div id="desglose-content"></div>
+      <p class="note">* Uber / Cabify / Taxi son estimados. El precio real puede variar.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK='taxivsauto_v6';
+let modo='voy',voyOMode='gps',recOMode='gps';
+let userLat=null,userLon=null,userAddr='';
+let distVial=0,desgloseOpen=false;
+let taxiModes={taxi:'dos',uber:'dos',cab:'dos'};
+let saved={voy:[],recB:[],recC:[]};
+
+function getRatio(){return(parseFloat(document.getElementById('cfg-sol').value)||230)/(parseFloat(document.getElementById('cfg-km').value)||200)}
+function calcAuto(km){return Math.round(km*getRatio())}
+function onCfgChange(){document.getElementById('cfg-ratio-val').textContent='S/ '+getRatio().toFixed(2);if(distVial>0)refresh()}
+
+function loadSaved(){
+  try{const d=JSON.parse(localStorage.getItem(SK)||'{}');saved.voy=d.voy||[];saved.recB=d.recB||[];saved.recC=d.recC||[]}catch{}
+  renderChips('voy-chips',saved.voy,'voy-destino');
+  renderChips('rec-b-chips',saved.recB,'rec-b');
+  renderChips('rec-c-chips',saved.recC,'rec-c');
+}
+function saveToDisk(){try{localStorage.setItem(SK,JSON.stringify(saved))}catch{}}
+function renderChips(cid,arr,inputId){
+  const el=document.getElementById(cid);if(!el)return;
+  el.innerHTML=arr.map((d,i)=>`<div class="chip" onclick="pickChip('${inputId}','${d.address.replace(/'/g,"\\'")}')">📍 ${d.name}<button class="chip-x" onclick="delChip(event,'${cid}',${i})">×</button></div>`).join('');
+}
+function pickChip(inputId,address){document.getElementById(inputId).value=address;document.querySelectorAll('.save-panel').forEach(p=>p.classList.remove('open'))}
+function delChip(e,cid,i){
+  e.stopPropagation();
+  const key=cid==='voy-chips'?'voy':cid==='rec-b-chips'?'recB':'recC';
+  saved[key].splice(i,1);saveToDisk();
+  renderChips(cid,saved[key],cid==='voy-chips'?'voy-destino':cid==='rec-b-chips'?'rec-b':'rec-c');
+}
+function toggleSave(pid,inputId){
+  const v=document.getElementById(inputId).value.trim();
+  if(!v){showErr('Escribe un lugar primero.');return}
+  const panel=document.getElementById(pid);
+  const isOpen=panel.classList.contains('open');
+  document.querySelectorAll('.save-panel').forEach(p=>p.classList.remove('open'));
+  if(!isOpen)panel.classList.add('open');
+}
+function hideSave(pid){document.getElementById(pid)?.classList.remove('open')}
+function guardar(pid,inputId,nameId,chipsId){
+  const address=document.getElementById(inputId).value.trim();
+  const name=document.getElementById(nameId).value.trim();
+  if(!address||!name)return;
+  const key=chipsId==='voy-chips'?'voy':chipsId==='rec-b-chips'?'recB':'recC';
+  const idx=saved[key].findIndex(d=>d.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0)saved[key][idx]={name,address};else saved[key].push({name,address});
+  saveToDisk();renderChips(chipsId,saved[key],inputId);
+  document.getElementById(pid).classList.remove('open');
+  document.getElementById(nameId).value='';
+}
+
+function setModo(m){
+  modo=m;
+  document.getElementById('mtab-voy').classList.toggle('active',m==='voy');
+  document.getElementById('mtab-recojo').classList.toggle('active',m==='recojo');
+  document.getElementById('inputs-voy').style.display=m==='voy'?'block':'none';
+  document.getElementById('inputs-recojo').style.display=m==='recojo'?'block':'none';
+  const desc=document.getElementById('modo-desc');
+  if(m==='voy')desc.innerHTML='<b style="color:var(--text)">Auto:</b> A → B (con opción ida y vuelta) &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> A → B';
+  else desc.innerHTML='<b style="color:var(--text)">Mi auto:</b> A → B → C &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> B → C directo';
+  document.getElementById('results').classList.remove('show');
+  distVial=0;
+  if(m==='recojo'&&userLat!==null)syncRecojoGPS();
+}
+
+function geolocate(){
+  const dot=document.getElementById('loc-dot'),nm=document.getElementById('loc-name'),sub=document.getElementById('loc-sub'),retry=document.getElementById('loc-retry');
+  dot.className='gps-dot loading';nm.textContent='Obteniendo ubicación...';retry.style.display='none';
+  if(!navigator.geolocation){setGeoError();return}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    userLat=pos.coords.latitude;userLon=pos.coords.longitude;nm.textContent='Identificando...';
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLon}&format=json`,{headers:{'User-Agent':'TaxivsAuto/1.0'}});
+      const d=await r.json(),a=d.address;
+      const barrio=a.neighbourhood||a.suburb||a.city_district||'';
+      const dist=a.city||a.town||'Lima';
+      userAddr=barrio?`${barrio}, ${dist}`:dist;
+      nm.textContent=userAddr;sub.textContent=`${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;dot.className='gps-dot';
+    }catch{userAddr=`${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;nm.textContent=userAddr;dot.className='gps-dot'}
+    syncRecojoGPS();
+  },()=>setGeoError(),{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+}
+function syncRecojoGPS(){
+  const dot=document.getElementById('rec-loc-dot'),nm=document.getElementById('rec-loc-name'),sub=document.getElementById('rec-loc-sub');
+  if(!dot)return;
+  dot.className='gps-dot';nm.textContent=userAddr||'GPS activo';if(sub)sub.textContent=`${userLat?.toFixed(4)}, ${userLon?.toFixed(4)}`;
+}
+function setGeoError(){
+  ['loc-dot','rec-loc-dot'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='gps-dot error'});
+  const nm=document.getElementById('loc-name');if(nm)nm.textContent='Permiso denegado';
+  const retry=document.getElementById('loc-retry');if(retry)retry.style.display='block';
+}
+function setVoyOrigin(m){
+  voyOMode=m;
+  document.getElementById('vtab-gps').classList.toggle('active',m==='gps');
+  document.getElementById('vtab-manual').classList.toggle('active',m==='manual');
+  document.getElementById('voy-gps-block').style.display=m==='gps'?'block':'none';
+  document.getElementById('voy-manual-block').style.display=m==='manual'?'block':'none';
+  if(m==='gps'&&userLat===null)geolocate();
+}
+function setRecojoOrigin(m){
+  recOMode=m;
+  document.getElementById('rtab-gps').classList.toggle('active',m==='gps');
+  document.getElementById('rtab-manual').classList.toggle('active',m==='manual');
+  document.getElementById('rec-gps-block').style.display=m==='gps'?'block':'none';
+  document.getElementById('rec-manual-block').style.display=m==='manual'?'block':'none';
+  if(m==='gps'&&userLat===null)geolocate();
+}
+
+async function geo(place){
+  const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place+', Lima, Peru')}&format=json&limit=1`,{headers:{'User-Agent':'TaxivsAuto/1.0'}});
+  const d=await r.json();if(!d.length)throw new Error(`No encontrado: "${place}"`);
+  return{lat:parseFloat(d[0].lat),lon:parseFloat(d[0].lon)};
+}
+function hav(la1,lo1,la2,lo2){
+  const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function pTaxi(key,km){
+  const base=key==='uber'?3.5+km*1.8+1.2:key==='cab'?4.0+km*1.9+1.0:3.0+km*2.0;
+  const mn=key==='taxi'?.85:.88,mx=key==='taxi'?1.20:1.12;
+  return{min:Math.round(base*mn),max:Math.round(base*mx)};
+}
+function minsB(t1,t2){const[h1,m1]=t1.split(':').map(Number),[h2,m2]=t2.split(':').map(Number);return Math.max(0,(h2*60+m2)-(h1*60+m1))}
+
+async function calcular(){
+  document.getElementById('err-msg').style.display='none';
+  const btn=document.getElementById('calc-btn');
+  btn.textContent='Calculando...';btn.disabled=true;
+  try{
+    if(modo==='voy')await calcVoy();else await calcRecojo();
+    document.getElementById('results').classList.add('show');
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(e){showErr(e.message)}
+  finally{btn.textContent='Calcular →';btn.disabled=false}
+}
+
+async function calcVoy(){
+  let oLat,oLon;
+  if(voyOMode==='gps'){if(userLat===null)throw new Error('GPS no disponible. Cambia a "Escribir".');oLat=userLat;oLon=userLon;}
+  else{const t=document.getElementById('voy-origen-manual').value.trim();if(!t)throw new Error('Escribe el origen.');const o=await geo(t);oLat=o.lat;oLon=o.lon;}
+  const dest=document.getElementById('voy-destino').value.trim();
+  if(!dest)throw new Error('Escribe el destino.');
+  const d=await geo(dest);
+  distVial=hav(oLat,oLon,d.lat,d.lon)*1.35;
+  renderVoy(distVial);
+}
+
+async function calcRecojo(){
+  let aLat,aLon;
+  if(recOMode==='gps'){if(userLat===null)throw new Error('GPS no disponible.');aLat=userLat;aLon=userLon;}
+  else{const t=document.getElementById('rec-a-manual').value.trim();if(!t)throw new Error('Escribe el punto A.');const o=await geo(t);aLat=o.lat;aLon=o.lon;}
+  const bTxt=document.getElementById('rec-b').value.trim();
+  const cTxt=document.getElementById('rec-c').value.trim();
+  if(!bTxt)throw new Error('Escribe el punto B.');
+  if(!cTxt)throw new Error('Escribe el punto C.');
+  const[bC,cC]=await Promise.all([geo(bTxt),geo(cTxt)]);
+  const dAB=hav(aLat,aLon,bC.lat,bC.lon)*1.35;
+  const dBC=hav(bC.lat,bC.lon,cC.lat,cC.lon)*1.35;
+  distVial=dBC;
+  renderRecojo(dAB,dBC,dAB+dBC);
+}
+
+function renderVoy(dist){
+  const autoRT=document.getElementById('m1-rt-auto')?.checked||false;
+  const autoKm=dist*(autoRT?2:1);
+  const data={auto:{single:calcAuto(autoKm),min:calcAuto(autoKm),max:null,detalle:`${autoKm.toFixed(1)} km · S/${getRatio().toFixed(2)}/km`+(autoRT?' · ida y vuelta':' · solo ida')}};
+  ['uber','cab','taxi'].forEach(k=>{
+    const rt=document.getElementById(`m1-rt-${k}`)?.checked||false;
+    const mode=taxiModes[k]||'dos';
+    let pr,detalle;
+    if(!rt){pr=pTaxi(k,dist);detalle=`${dist.toFixed(1)} km · solo ida`}
+    else if(mode==='dos'){pr=pTaxi(k,dist*2);detalle=`${(dist*2).toFixed(1)} km · 2 viajes`}
+    else{
+      const esp=minsB(document.getElementById(`m1-hi-${k}`)?.value||'09:00',document.getElementById(`m1-hr-${k}`)?.value||'10:30');
+      const base=k==='uber'?3.5+dist*1.8+1.2:k==='cab'?4.0+dist*1.9+1.0:3.0+dist*2.0;
+      const tot=base*2+(esp/60)*18;pr={min:Math.round(tot*.9),max:Math.round(tot*1.1)};
+      const h=Math.floor(esp/60),m=esp%60;detalle=`${(dist*2).toFixed(1)} km · espera ${h>0?h+'h ':''}${m}min`;
+    }
+    data[k]={...pr,single:null,detalle};
+  });
+  renderVerdict(data);
+  document.getElementById('desglose-content').innerHTML=buildM1Cards(data);
+}
+
+function renderRecojo(dAB,dBC,dABC){
+  const autoCosto=calcAuto(dABC);
+  const data={
+    auto:{single:autoCosto,min:autoCosto,max:null,detalle:`A→B ${dAB.toFixed(1)}km + B→C ${dBC.toFixed(1)}km = ${dABC.toFixed(1)} km`},
+    uber:{...pTaxi('uber',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
+    cab:{...pTaxi('cab',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
+    taxi:{...pTaxi('taxi',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
+  };
+  renderVerdict(data);
+  document.getElementById('desglose-content').innerHTML=buildRecojoCards(data);
+}
+
+function renderVerdict(data){
+  const costAuto=data.auto.single;
+  const best=[{name:'Uber',min:data.uber.min},{name:'Cabify',min:data.cab.min},{name:'Taxi',min:data.taxi.min}].reduce((a,b)=>a.min<b.min?a:b);
+  const convieneTaxi=best.min<costAuto;
+  const ahorro=Math.abs(costAuto-best.min);
+  const vb=document.getElementById('verdict-block'),ar=document.getElementById('action-row');
+  if(convieneTaxi){
+    vb.innerHTML=`<div class="verdict-card v-taxi"><div class="verdict-tag">🏆 Conviene el taxi</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Mejor opción</div><div class="v-decision">${best.name}</div><div class="v-sub">desde S/ ${best.min}</div></div><div class="verdict-right"><div class="v-saving-label">Ahorras</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Taxi estimado</div><div class="vstat-val">S/ ${best.min}+</div></div><div class="vstat"><div class="vstat-label">Tu auto costaría</div><div class="vstat-val">S/ ${costAuto}</div></div></div><div class="verdict-tope">⚡ Tope: si el taxi supera <strong>S/ ${costAuto}</strong>, ya no conviene.</div></div>`;
+    ar.innerHTML=`<button class="act-btn primary-blue" onclick="lanzarUber()">🚗 Pedir Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Ver Cabify</button><button class="act-btn" onclick="abrirMaps()">🗺 Maps</button>`;
+  }else{
+    vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Más barato</div><div class="v-decision">Tu auto</div><div class="v-sub">S/ ${costAuto} en gasolina</div></div><div class="verdict-right"><div class="v-saving-label">Taxi más caro en</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Tu auto</div><div class="vstat-val">S/ ${costAuto}</div></div><div class="vstat"><div class="vstat-label">Taxi más barato</div><div class="vstat-val">S/ ${best.min}+</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
+    ar.innerHTML=`<button class="act-btn primary-green" onclick="abrirMaps()">🗺 Navegar con Maps</button><button class="act-btn" onclick="lanzarUber()">🚗 Igual pedir Uber</button>`;
+  }
+}
+
+function buildM1Cards(data){
+  return'<div class="m1-cards">'+[
+    {k:'auto',n:'Mi auto',ic:'ic-auto',em:'🚗',action:'maps'},
+    {k:'uber',n:'Uber',ic:'ic-uber',em:'🔵',action:'uber'},
+    {k:'cab',n:'Cabify',ic:'ic-cab',em:'🟡',action:'cabify'},
+    {k:'taxi',n:'Taxi',ic:'ic-taxi',em:'🚕',action:null},
+  ].map(({k,n,ic,em,action})=>{
+    const d=data[k];const ps=d.single!==null?`S/ ${d.single}`:`S/ ${d.min}–${d.max}`;
+    let aBtn='';
+    if(action==='uber')aBtn=`<button class="mini-btn" onclick="lanzarUber()">Pedir →</button>`;
+    else if(action==='cabify')aBtn=`<button class="mini-btn" onclick="lanzarCabify()">Abrir →</button>`;
+    else if(action==='maps')aBtn=`<button class="mini-btn" onclick="abrirMaps()">Ruta →</button>`;
+    let rtPanel='';
+    if(k!=='auto')rtPanel=`<div class="rt-opts" id="m1-rtsub-${k}"><div class="mode-pills"><button class="mpill active" id="m1-togdos-${k}" onclick="setM1TMode('${k}','dos')">2 viajes</button><button class="mpill" id="m1-togesp-${k}" onclick="setM1TMode('${k}','espera')">Espera</button></div><div class="time-inputs" id="m1-tinp-${k}"><div class="time-col"><label>Hora ida</label><input type="time" id="m1-hi-${k}" value="09:00" onchange="refresh()"></div><div class="time-col"><label>Regreso</label><input type="time" id="m1-hr-${k}" value="10:30" onchange="refresh()"></div></div></div>`;
+    return`<div class="m1-card"><div class="m1-top"><div class="rcard-icon ${ic}">${em}</div><div class="m1-info"><div class="rcard-name">${n}</div><div class="rcard-detail" id="m1-det-${k}">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price" id="m1-pr-${k}">${ps}<span class="su">soles</span></div>${aBtn}</div></div><div class="m1-footer"><label class="rt-check-label"><input type="checkbox" id="m1-rt-${k}" onchange="toggleM1RT('${k}')"> Ida y vuelta</label></div>${rtPanel}</div>`;
+  }).join('')+'</div>';
+}
+
+function buildRecojoCards(data){
+  return'<div class="route-cards">'+[
+    {k:'auto',n:'Mi auto (A→B→C)',ic:'ic-auto',em:'🚗',action:'maps-abc'},
+    {k:'uber',n:'Uber (B→C)',ic:'ic-uber',em:'🔵',action:'uber-bc'},
+    {k:'cab',n:'Cabify (B→C)',ic:'ic-cab',em:'🟡',action:'cab-bc'},
+    {k:'taxi',n:'Taxi (B→C)',ic:'ic-taxi',em:'🚕',action:null},
+  ].map(({k,n,ic,em,action})=>{
+    const d=data[k];const ps=d.single!==null?`S/ ${d.single}`:`S/ ${d.min}–${d.max}`;
+    let aBtn='';
+    if(action==='maps-abc')aBtn=`<button class="mini-btn" onclick="abrirMapsABC()">Ruta →</button>`;
+    else if(action==='uber-bc')aBtn=`<button class="mini-btn" onclick="lanzarUberBC()">Pedir →</button>`;
+    else if(action==='cab-bc')aBtn=`<button class="mini-btn" onclick="lanzarCabifyBC()">Abrir →</button>`;
+    return`<div class="rcard"><div class="rcard-icon ${ic}">${em}</div><div class="rcard-info"><div class="rcard-name">${n}</div><div class="rcard-detail">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price">${ps}<span class="su">soles</span></div>${aBtn}</div></div>`;
+  }).join('')+'</div>';
+}
+
+function toggleM1RT(k){document.getElementById('m1-rtsub-'+k)?.classList.toggle('open',document.getElementById('m1-rt-'+k).checked);refresh()}
+function setM1TMode(k,mode){taxiModes[k]=mode;document.getElementById('m1-togdos-'+k).classList.toggle('active',mode==='dos');document.getElementById('m1-togesp-'+k).classList.toggle('active',mode==='espera');document.getElementById('m1-tinp-'+k).classList.toggle('open',mode==='espera');refresh()}
+function refresh(){if(distVial>0&&modo==='voy')renderVoy(distVial)}
+function toggleDesglose(){desgloseOpen=!desgloseOpen;document.getElementById('desglose-panel').classList.toggle('open',desgloseOpen);document.getElementById('des-arrow').textContent=desgloseOpen?'▴':'▾';document.getElementById('des-label').textContent=desgloseOpen?'Ocultar desglose':'Ver desglose por opción'}
+function showErr(msg){const e=document.getElementById('err-msg');e.textContent=msg;e.style.display='block'}
+
+function lanzarUber(){
+  const dest=document.getElementById('voy-destino').value;
+  const orig=voyOMode==='gps'?(userAddr||'mi ubicación'):document.getElementById('voy-origen-manual').value;
+  if(window.sendPrompt)window.sendPrompt(`Pedir un Uber desde ${orig} hasta ${dest}`);
+  else window.open(`https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(dest)}`,'_blank');
+}
+function lanzarUberBC(){
+  const b=document.getElementById('rec-b').value,c=document.getElementById('rec-c').value;
+  if(window.sendPrompt)window.sendPrompt(`Pedir un Uber desde ${b} hasta ${c}`);
+  else window.open(`https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(b)}&dropoff[formatted_address]=${encodeURIComponent(c)}`,'_blank');
+}
+function lanzarCabify(){const o=voyOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('voy-origen-manual').value+', Lima, Peru');window.open(`https://cabify.com/ride?origin=${o}&destination=${encodeURIComponent(document.getElementById('voy-destino').value+', Lima, Peru')}`,'_blank')}
+function lanzarCabifyBC(){window.open(`https://cabify.com/ride?origin=${encodeURIComponent(document.getElementById('rec-b').value+', Lima, Peru')}&destination=${encodeURIComponent(document.getElementById('rec-c').value+', Lima, Peru')}`,'_blank')}
+function abrirMaps(){const o=voyOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('voy-origen-manual').value+', Lima, Peru');window.open(`https://www.google.com/maps/dir/${o}/${encodeURIComponent(document.getElementById('voy-destino').value+', Lima, Peru')}`,'_blank')}
+function abrirMapsABC(){
+  const a=recOMode==='gps'&&userLat?`${userLat},${userLon}`:encodeURIComponent(document.getElementById('rec-a-manual').value+', Lima, Peru');
+  const b=encodeURIComponent(document.getElementById('rec-b').value+', Lima, Peru');
+  const c=encodeURIComponent(document.getElementById('rec-c').value+', Lima, Peru');
+  window.open(`https://www.google.com/maps/dir/${a}/${b}/${c}`,'_blank');
+}
+
+setModo('voy');loadSaved();geolocate();
+</script>
+</body>
+</html>
