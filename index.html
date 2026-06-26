@@ -234,27 +234,28 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
   <!-- MODO VOY -->
   <div id="inputs-voy">
     <div class="slabel">📍 Yo estoy en</div>
-    <div class="origin-tabs">
-      <button class="otab active" id="vtab-gps" onclick="setVoyOrigin('gps')">📡 GPS</button>
-      <button class="otab" id="vtab-manual" onclick="setVoyOrigin('manual')">✏️ Escribir</button>
-    </div>
-    <div id="voy-gps-block">
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <div class="gps-block" style="flex:1;margin-bottom:0">
-          <div class="gps-dot loading" id="loc-dot"></div>
-          <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
-          <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
-        </div>
-        <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación actual">🔖</button>
+    <!-- GPS actual -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <div class="gps-block" style="flex:1;margin-bottom:0">
+        <div class="gps-dot loading" id="loc-dot"></div>
+        <div class="gps-text"><div class="gps-name" id="loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="loc-sub">Esperando GPS</div></div>
+        <button class="retry-btn" id="loc-retry" onclick="geolocate()" style="display:none">↺</button>
       </div>
-      <div class="save-panel" id="gps-save">
-        <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
-        <div class="save-inner"><input type="text" id="gps-save-name" placeholder="Ej: Casa, Oficina, Casa mamá..."><button class="save-ok" onclick="guardarGPS()">✓</button></div>
-      </div>
+      <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación actual">🔖</button>
     </div>
+    <div class="save-panel" id="gps-save" style="margin-bottom:6px">
+      <div style="font-size:11px;color:var(--text2)">Guardar esta ubicación como:</div>
+      <div class="save-inner"><input type="text" id="gps-save-name" placeholder="Ej: Casa, Oficina, Casa mamá..."><button class="save-ok" onclick="guardarGPS()">✓</button></div>
+    </div>
+    <!-- Chips de lugares guardados como origen -->
+    <div id="gps-chips-label" style="font-size:10px;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:6px;display:none">O salir desde:</div>
     <div class="chips" id="gps-chips" style="margin-bottom:8px"></div>
+    <!-- Input manual (al tocar chip o escribir dirección) -->
     <div id="voy-manual-block" style="display:none;margin-bottom:8px">
-      <input type="text" class="field-input" id="voy-origen-manual" placeholder="Ej: San Isidro, Lima">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="field-input" id="voy-origen-manual" placeholder="Ej: San Isidro, Lima" style="flex:1">
+        <button class="save-btn" onclick="clearManualOrigen()" title="Volver a GPS" style="font-size:12px">📡</button>
+      </div>
     </div>
     <div class="divider"></div>
     <div class="slabel">📍 ¿A dónde vas?</div>
@@ -472,10 +473,8 @@ function setGeoError(msg){
 }
 function setVoyOrigin(m){
   voyOMode=m;
-  document.getElementById('vtab-gps').classList.toggle('active',m==='gps');
-  document.getElementById('vtab-manual').classList.toggle('active',m==='manual');
-  document.getElementById('voy-gps-block').style.display=m==='gps'?'block':'none';
-  document.getElementById('voy-manual-block').style.display=m==='manual'?'block':'none';
+  document.getElementById('voy-manual-block').style.display=m==='manual'?'flex':'none';
+  if(m==='manual')document.getElementById('voy-origen-manual').focus();
   if(m==='gps'&&userLat===null)geolocate();
 }
 function setRecojoOrigin(m){
@@ -843,20 +842,49 @@ function guardarGPS(){
 function renderGPSChips(){
   const gpsPlaces=saved.voy.filter(d=>d.lat);
   const el=document.getElementById('gps-chips');
+  const label=document.getElementById('gps-chips-label');
   if(!el)return;
-  if(!gpsPlaces.length){el.innerHTML='';return;}
-  el.innerHTML=gpsPlaces.map((d,i)=>`<div class="chip" onclick="loadGPSPlace(${i})"}>📍 ${d.name}<button class="chip-x" onclick="delGPSChip(event,'${d.name.replace(/'/g,"\\'")}')">×</button></div>`).join('');
+  if(!gpsPlaces.length){
+    el.innerHTML='';
+    if(label)label.style.display='none';
+    return;
+  }
+  if(label)label.style.display='block';
+  el.innerHTML=gpsPlaces.map((d,i)=>`<div class="chip" onclick="loadGPSPlace(${i})">📍 ${d.name}<button class="chip-x" onclick="delGPSChip(event,'${d.name.replace(/'/g,"\\'")}')">×</button></div>`).join('');
 }
 
 function loadGPSPlace(i){
   const gpsPlaces=saved.voy.filter(d=>d.lat);
   const p=gpsPlaces[i];
   if(!p)return;
-  // Usar como origen manual
-  setVoyOrigin('manual');
-  const el=document.getElementById('voy-origen-manual');
-  if(el)el.value=p.address;
-  userAddr=p.address;
+  // Usar coordenadas guardadas como origen
+  userLat=p.lat; userLon=p.lon; userAddr=p.address;
+  // Mostrar como GPS activo
+  const dot=document.getElementById('loc-dot');
+  const nm=document.getElementById('loc-name');
+  const sub=document.getElementById('loc-sub');
+  if(dot)dot.className='gps-dot';
+  if(nm)nm.textContent='📍 '+p.name;
+  if(sub)sub.textContent=p.address;
+  // Ocultar manual si estaba abierto
+  document.getElementById('voy-manual-block').style.display='none';
+  // Resaltar chip seleccionado
+  document.querySelectorAll('#gps-chips .chip').forEach((c,idx)=>{
+    c.style.borderColor=idx===i?'var(--yellow)':'';
+    c.style.color=idx===i?'var(--yellow)':'';
+  });
+}
+
+function clearManualOrigen(){
+  document.getElementById('voy-manual-block').style.display='none';
+  document.getElementById('voy-origen-manual').value='';
+  voyOMode='gps';
+  // Restaurar GPS
+  const dot=document.getElementById('loc-dot');
+  if(userLat!==null&&dot){
+    dot.className='gps-dot';
+    document.getElementById('loc-name').textContent=userAddr;
+  }
 }
 
 function delGPSChip(e,name){
