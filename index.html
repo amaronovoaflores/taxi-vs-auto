@@ -182,6 +182,16 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .time-col input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:7px 8px}
 .time-col input:focus{outline:none;border-color:var(--yellow)}
 .note{font-size:10px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6}
+.hora-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hora-block label{font-size:12px;color:var(--text2);white-space:nowrap}
+.hora-block input[type=time]{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;padding:6px 10px;flex:1;min-width:100px}
+.hora-block input[type=time]:focus{outline:none;border-color:var(--yellow)}
+.hora-now-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s}
+.hora-now-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+.hora-now-btn.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.traffic-badge{font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 8px;white-space:nowrap}
+.traffic-badge.live{color:var(--green);border-color:var(--green);background:var(--green-bg)}
+.traffic-badge.scheduled{color:var(--blue);border-color:var(--blue);background:var(--blue-bg)}
 </style>
 </head>
 <body>
@@ -312,6 +322,26 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
     </div>
   </div>
 
+  <!-- HORA DE SALIDA -->
+  <div class="slabel" style="margin-top:4px">🕐 Hora de salida</div>
+  <div class="hora-block">
+    <label>Salgo a las</label>
+    <input type="time" id="hora-salida" value="">
+    <button class="hora-now-btn active" id="hora-now-btn" onclick="setHoraAhora()">Ahora</button>
+    <span class="traffic-badge live" id="traffic-badge">🟢 Tráfico en vivo</span>
+  </div>
+
+  <!-- HORA RETORNO RECOGER -->
+  <div id="hora-retorno-block" style="display:none">
+    <div class="slabel">🔄 Regreso (tramo B→C)</div>
+    <div class="hora-block">
+      <label>Regreso a las</label>
+      <input type="time" id="hora-retorno" value="">
+      <button class="hora-now-btn active" id="hora-ret-now-btn" onclick="setHoraRetornoAhora()">Ahora</button>
+      <span class="traffic-badge live" id="traffic-ret-badge">🟢 Tráfico en vivo</span>
+    </div>
+  </div>
+
   <button class="calc-btn" id="calc-btn" onclick="calcular()">Calcular →</button>
   <div class="err-msg" id="err-msg"></div>
   <div class="divider"></div>
@@ -387,8 +417,13 @@ function setModo(m){
   document.getElementById('inputs-voy').style.display=m==='voy'?'block':'none';
   document.getElementById('inputs-recojo').style.display=m==='recojo'?'block':'none';
   const desc=document.getElementById('modo-desc');
-  if(m==='voy')desc.innerHTML='<b style="color:var(--text)">Auto:</b> A → B (con opción ida y vuelta) &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> A → B';
-  else desc.innerHTML='<b style="color:var(--text)">Mi auto:</b> A → B → C &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> B → C directo';
+  if(m==='voy'){
+    desc.innerHTML='<b style="color:var(--text)">Auto:</b> A → B (con opción ida y vuelta) &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> A → B';
+    document.getElementById('hora-retorno-block').style.display='none';
+  } else {
+    desc.innerHTML='<b style="color:var(--text)">Mi auto:</b> A → B → C &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> B → C directo';
+    document.getElementById('hora-retorno-block').style.display='block';
+  }
   document.getElementById('results').classList.remove('show');
   distVial=0;
   if(m==='recojo'&&userLat!==null)syncRecojoGPS();
@@ -522,10 +557,18 @@ async function calcVoy(){
   const dest=document.getElementById('voy-destino').value.trim();
   if(!dest)throw new Error('Escribe el destino.');
   const d=await geo(dest);
-  const matrix=await getDistanceMatrix(oLat,oLon,d.lat,d.lon);
+  const depTime=getDepartureTime('hora-salida');
+  const matrix=await getDistanceMatrix(oLat,oLon,d.lat,d.lon,depTime);
   if(matrix){
     distVial=matrix.distKm;
     durMin=matrix.durMin;
+    // Actualizar badge
+    const badge=document.getElementById('traffic-badge');
+    if(badge){
+      const isNow=!document.getElementById('hora-salida').value;
+      badge.className='traffic-badge '+(isNow?'live':'scheduled');
+      badge.textContent=isNow?'🟢 Tráfico en vivo':'🔵 Tráfico estimado';
+    }
   } else {
     distVial=hav(oLat,oLon,d.lat,d.lon)*1.35;
     durMin=Math.round(distVial/0.33);
@@ -575,13 +618,16 @@ function renderVoy(dist){
   document.getElementById('desglose-content').innerHTML=buildM1Cards(data);
 }
 
-function renderRecojo(dAB,dBC,dABC){
+function renderRecojo(dAB,dBC,dABC,durAB,durBC){
+  durAB=durAB||Math.round(dAB/0.33);
+  durBC=durBC||Math.round(dBC/0.33);
   const autoCosto=calcAuto(dABC);
   const data={
-    auto:{single:autoCosto,min:autoCosto,max:null,detalle:`A→B ${dAB.toFixed(1)}km + B→C ${dBC.toFixed(1)}km = ${dABC.toFixed(1)} km`},
-    uber:{...pTaxi('uber',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
-    cab:{...pTaxi('cab',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
-    taxi:{...pTaxi('taxi',dBC),single:null,detalle:`B→C directo · ${dBC.toFixed(1)} km`},
+    auto:{single:autoCosto,min:autoCosto,max:null,
+      detalle:`A→B ${dAB.toFixed(1)}km ~${durAB}min + B→C ${dBC.toFixed(1)}km ~${durBC}min = ${dABC.toFixed(1)} km total`},
+    uber:{...pTaxi('uber',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
+    cab:{...pTaxi('cab',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
+    taxi:{...pTaxi('taxi',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
   };
   renderVerdict(data);
   document.getElementById('desglose-content').innerHTML=buildRecojoCards(data);
@@ -754,6 +800,30 @@ function delGPSChip(e,i){
 }
 
 setModo('voy');loadSaved();renderGPSChips();geolocate();
+// Poner hora actual por defecto
+setHoraAhora();
+setHoraRetornoAhora();
+// Actualizar badge cuando cambia la hora
+document.getElementById('hora-salida').addEventListener('input',function(){
+  const badge=document.getElementById('traffic-badge');
+  const btn=document.getElementById('hora-now-btn');
+  const now=new Date();
+  const [h,m]=this.value.split(':').map(Number);
+  const isNow=Math.abs(h*60+m-(now.getHours()*60+now.getMinutes()))<=2;
+  badge.className='traffic-badge '+(isNow?'live':'scheduled');
+  badge.textContent=isNow?'🟢 Tráfico en vivo':'🔵 Tráfico estimado';
+  btn.classList.toggle('active',isNow);
+});
+document.getElementById('hora-retorno').addEventListener('input',function(){
+  const badge=document.getElementById('traffic-ret-badge');
+  const btn=document.getElementById('hora-ret-now-btn');
+  const now=new Date();
+  const [h,m]=this.value.split(':').map(Number);
+  const isNow=Math.abs(h*60+m-(now.getHours()*60+now.getMinutes()))<=2;
+  badge.className='traffic-badge '+(isNow?'live':'scheduled');
+  badge.textContent=isNow?'🟢 Tráfico en vivo':'🔵 Tráfico estimado';
+  btn.classList.toggle('active',isNow);
+});
 </script>
 </body>
 </html>
