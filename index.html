@@ -643,7 +643,8 @@ async function calcRecojo(){
 function renderVoy(dist){
   const autoRT=document.getElementById('m1-rt-auto')?.checked||false;
   const autoKm=dist*(autoRT?2:1);
-  const data={auto:{single:calcAuto(autoKm),min:calcAuto(autoKm),max:null,detalle:`${autoKm.toFixed(1)} km · S/${getRatio().toFixed(2)}/km`+(autoRT?' · ida y vuelta':' · solo ida')}};
+  const autoDur=durMin*(autoRT?2:1);
+  const data={auto:{single:calcAuto(autoKm),min:calcAuto(autoKm),max:null,km:autoKm,dur:autoDur,detalle:`${autoKm.toFixed(1)} km · ~${autoDur}min · S/${getRatio().toFixed(2)}/km`+(autoRT?' · ida y vuelta':' · solo ida')}};
   ['uber','cab','taxi'].forEach(k=>{
     const rt=document.getElementById(`m1-rt-${k}`)?.checked||false;
     const mode=taxiModes[k]||'dos';
@@ -667,7 +668,7 @@ function renderRecojo(dAB,dBC,dABC,durAB,durBC){
   durBC=durBC||Math.round(dBC/0.33);
   const autoCosto=calcAuto(dABC);
   const data={
-    auto:{single:autoCosto,min:autoCosto,max:null,
+    auto:{single:autoCosto,min:autoCosto,max:null,km:dABC,dur:durAB+durBC,
       detalle:`A→B ${dAB.toFixed(1)}km ~${durAB}min + B→C ${dBC.toFixed(1)}km ~${durBC}min = ${dABC.toFixed(1)} km total`},
     uber:{...pTaxi('uber',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
     cab:{...pTaxi('cab',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
@@ -679,6 +680,8 @@ function renderRecojo(dAB,dBC,dABC,durAB,durBC){
 
 function renderVerdict(data){
   const costAuto=data.auto.single;
+  const autoKm=data.auto.km||0;
+  const autoDur=data.auto.dur||0;
   const best=[{name:'Uber',min:data.uber.min},{name:'Cabify',min:data.cab.min},{name:'Taxi',min:data.taxi.min}].reduce((a,b)=>a.min<b.min?a:b);
   const convieneTaxi=best.min<costAuto;
   const ahorro=Math.abs(costAuto-best.min);
@@ -687,7 +690,7 @@ function renderVerdict(data){
     vb.innerHTML=`<div class="verdict-card v-taxi"><div class="verdict-tag">🏆 Conviene el taxi</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Mejor opción</div><div class="v-decision">${best.name}</div><div class="v-sub">desde S/ ${best.min}</div></div><div class="verdict-right"><div class="v-saving-label">Ahorras</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Taxi estimado</div><div class="vstat-val">S/ ${best.min}+</div></div><div class="vstat"><div class="vstat-label">Tu auto costaría</div><div class="vstat-val">S/ ${costAuto}</div></div></div><div class="verdict-tope">⚡ Tope: si el taxi supera <strong>S/ ${costAuto}</strong>, ya no conviene.</div></div>`;
     ar.innerHTML=`<button class="act-btn primary-blue" onclick="lanzarUber()">🚗 Pedir Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Abrir Cabify</button><button class="act-btn" onclick="abrirMaps()">🗺 Maps</button>`;
   }else{
-    vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Más barato</div><div class="v-decision">Tu auto</div><div class="v-sub">S/ ${costAuto} en gasolina</div></div><div class="verdict-right"><div class="v-saving-label">Taxi más caro en</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Tu auto</div><div class="vstat-val">S/ ${costAuto}</div></div><div class="vstat"><div class="vstat-label">Taxi más barato</div><div class="vstat-val">S/ ${best.min}+</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
+    vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Más barato</div><div class="v-decision">Tu auto</div><div class="v-sub">S/ ${costAuto} en gasolina</div></div><div class="verdict-right"><div class="v-saving-label">Taxi más caro en</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Tu auto · ${autoKm?autoKm.toFixed(1)+'km ':''} ${autoDur?'~'+autoDur+'min':''}</div><div class="vstat-val">S/ ${costAuto}</div></div><div class="vstat"><div class="vstat-label">Taxi más barato</div><div class="vstat-val">S/ ${best.min}+</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
     ar.innerHTML=`<button class="act-btn primary-green" onclick="abrirMaps()">🗺 Google Maps</button><button class="act-btn" onclick="lanzarUber()">🚗 Igual pedir Uber</button>`;
   }
 }
@@ -840,8 +843,9 @@ function guardarGPS(){
 function renderGPSChips(){
   const gpsPlaces=saved.voy.filter(d=>d.lat);
   const el=document.getElementById('gps-chips');
-  if(!el||!gpsPlaces.length)return;
-  el.innerHTML=gpsPlaces.map((d,i)=>`<div class="chip" onclick="loadGPSPlace(${i})">📍 ${d.name}<button class="chip-x" onclick="delGPSChip(event,${i})">×</button></div>`).join('');
+  if(!el)return;
+  if(!gpsPlaces.length){el.innerHTML='';return;}
+  el.innerHTML=gpsPlaces.map((d,i)=>`<div class="chip" onclick="loadGPSPlace(${i})"}>📍 ${d.name}<button class="chip-x" onclick="delGPSChip(event,'${d.name.replace(/'/g,"\\'")}')">×</button></div>`).join('');
 }
 
 function loadGPSPlace(i){
@@ -855,10 +859,8 @@ function loadGPSPlace(i){
   userAddr=p.address;
 }
 
-function delGPSChip(e,i){
+function delGPSChip(e,name){
   e.stopPropagation();
-  const gpsPlaces=saved.voy.filter(d=>d.lat);
-  const name=gpsPlaces[i]?.name;
   saved.voy=saved.voy.filter(d=>d.name!==name);
   saveToDisk();renderGPSChips();
 }
