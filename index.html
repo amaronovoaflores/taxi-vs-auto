@@ -12,6 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <title>¿Auto o Taxi? · Lima</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjOBgEngBzLZh1yiF1bkq4C-KtdiILHCI&libraries=places"></script>
 <style>
 :root{
   --bg:#0F0F1A;
@@ -332,7 +333,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 const SK='taxivsauto_v6';
 let modo='voy',voyOMode='gps',recOMode='gps';
 let userLat=null,userLon=null,userAddr='';
-let distVial=0,desgloseOpen=false;
+let distVial=0,durMin=0,desgloseOpen=false;
 let taxiModes={taxi:'dos',uber:'dos',cab:'dos'};
 let saved={voy:[],recB:[],recC:[]};
 
@@ -441,11 +442,55 @@ function setRecojoOrigin(m){
   if(m==='gps'&&userLat===null)geolocate();
 }
 
-async function geo(place){
-  const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place+', Lima, Peru')}&format=json&limit=1`,{headers:{'User-Agent':'TaxivsAuto/1.0'}});
-  const d=await r.json();if(!d.length)throw new Error(`No encontrado: "${place}"`);
-  return{lat:parseFloat(d[0].lat),lon:parseFloat(d[0].lon)};
+// Geocoding via Google Places
+function geo(place){
+  return new Promise((resolve,reject)=>{
+    const svc=new google.maps.places.PlacesService(document.createElement('div'));
+    svc.findPlaceFromQuery({
+      query: place+', Lima, Peru',
+      fields: ['geometry','name']
+    },(results,status)=>{
+      if(status===google.maps.places.PlacesServiceStatus.OK&&results[0]){
+        const loc=results[0].geometry.location;
+        resolve({lat:loc.lat(),lon:loc.lng(),name:results[0].name});
+      } else {
+        // fallback a Nominatim
+        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place+', Lima, Peru')}&format=json&limit=1`,{headers:{'User-Agent':'TaxivsAuto/1.0'}})
+          .then(r=>r.json())
+          .then(d=>{
+            if(!d.length)throw new Error(`No encontrado: "${place}"`);
+            resolve({lat:parseFloat(d[0].lat),lon:parseFloat(d[0].lon)});
+          }).catch(reject);
+      }
+    });
+  });
 }
+
+// Distancia real por ruta via Distance Matrix API
+function getDistanceMatrix(oLat,oLon,dLat,dLon){
+  return new Promise((resolve)=>{
+    const svc=new google.maps.DistanceMatrixService();
+    svc.getDistanceMatrix({
+      origins:[new google.maps.LatLng(oLat,oLon)],
+      destinations:[new google.maps.LatLng(dLat,dLon)],
+      travelMode:google.maps.TravelMode.DRIVING,
+      region:'PE'
+    },(resp,status)=>{
+      if(status==='OK'&&resp.rows[0].elements[0].status==='OK'){
+        const el=resp.rows[0].elements[0];
+        resolve({
+          distKm: el.distance.value/1000,
+          durMin: Math.round(el.duration.value/60),
+          distText: el.distance.text,
+          durText: el.duration.text
+        });
+      } else {
+        resolve(null); // fallback a haversine
+      }
+    });
+  });
+}
+
 function hav(la1,lo1,la2,lo2){
   const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;
   const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;
@@ -477,7 +522,14 @@ async function calcVoy(){
   const dest=document.getElementById('voy-destino').value.trim();
   if(!dest)throw new Error('Escribe el destino.');
   const d=await geo(dest);
-  distVial=hav(oLat,oLon,d.lat,d.lon)*1.35;
+  const matrix=await getDistanceMatrix(oLat,oLon,d.lat,d.lon);
+  if(matrix){
+    distVial=matrix.distKm;
+    durMin=matrix.durMin;
+  } else {
+    distVial=hav(oLat,oLon,d.lat,d.lon)*1.35;
+    durMin=Math.round(distVial/0.33);
+  }
   renderVoy(distVial);
 }
 
@@ -490,8 +542,13 @@ async function calcRecojo(){
   if(!bTxt)throw new Error('Escribe el punto B.');
   if(!cTxt)throw new Error('Escribe el punto C.');
   const[bC,cC]=await Promise.all([geo(bTxt),geo(cTxt)]);
-  const dAB=hav(aLat,aLon,bC.lat,bC.lon)*1.35;
-  const dBC=hav(bC.lat,bC.lon,cC.lat,cC.lon)*1.35;
+  // Obtener distancias reales por ruta en paralelo
+  const[mAB,mBC]=await Promise.all([
+    getDistanceMatrix(aLat,aLon,bC.lat,bC.lon),
+    getDistanceMatrix(bC.lat,bC.lon,cC.lat,cC.lon)
+  ]);
+  const dAB=mAB?mAB.distKm:hav(aLat,aLon,bC.lat,bC.lon)*1.35;
+  const dBC=mBC?mBC.distKm:hav(bC.lat,bC.lon,cC.lat,cC.lon)*1.35;
   distVial=dBC;
   renderRecojo(dAB,dBC,dAB+dBC);
 }
