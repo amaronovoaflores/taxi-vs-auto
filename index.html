@@ -595,10 +595,10 @@ function renderVerdict(data){
   const vb=document.getElementById('verdict-block'),ar=document.getElementById('action-row');
   if(convieneTaxi){
     vb.innerHTML=`<div class="verdict-card v-taxi"><div class="verdict-tag">🏆 Conviene el taxi</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Mejor opción</div><div class="v-decision">${best.name}</div><div class="v-sub">desde S/ ${best.min}</div></div><div class="verdict-right"><div class="v-saving-label">Ahorras</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Taxi estimado</div><div class="vstat-val">S/ ${best.min}+</div></div><div class="vstat"><div class="vstat-label">Tu auto costaría</div><div class="vstat-val">S/ ${costAuto}</div></div></div><div class="verdict-tope">⚡ Tope: si el taxi supera <strong>S/ ${costAuto}</strong>, ya no conviene.</div></div>`;
-    ar.innerHTML=`<button class="act-btn primary-blue" onclick="lanzarUber()">🚗 Pedir Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Ver Cabify</button><button class="act-btn" onclick="abrirMaps()">🗺 Maps</button>`;
+    ar.innerHTML=`<button class="act-btn primary-blue" onclick="lanzarUber()">🚗 Pedir Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Abrir Cabify</button><button class="act-btn" onclick="abrirMaps()">🗺 Maps</button>`;
   }else{
     vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Más barato</div><div class="v-decision">Tu auto</div><div class="v-sub">S/ ${costAuto} en gasolina</div></div><div class="verdict-right"><div class="v-saving-label">Taxi más caro en</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Tu auto</div><div class="vstat-val">S/ ${costAuto}</div></div><div class="vstat"><div class="vstat-label">Taxi más barato</div><div class="vstat-val">S/ ${best.min}+</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
-    ar.innerHTML=`<button class="act-btn primary-green" onclick="abrirMaps()">🗺 Navegar con Maps</button><button class="act-btn" onclick="lanzarUber()">🚗 Igual pedir Uber</button>`;
+    ar.innerHTML=`<button class="act-btn primary-green" onclick="abrirMaps()">🗺 Google Maps</button><button class="act-btn" onclick="lanzarUber()">🚗 Igual pedir Uber</button>`;
   }
 }
 
@@ -615,8 +615,8 @@ function buildM1Cards(data){
     const d=data[k];const ps=d.single!==null?`S/ ${d.single}`:`S/ ${d.min}–${d.max}`;
     let aBtn='';
     if(action==='uber')aBtn=`<button class="mini-btn" onclick="lanzarUber()">Pedir →</button>`;
-    else if(action==='cabify')aBtn=`<button class="mini-btn" onclick="lanzarCabify()">Abrir →</button>`;
-    else if(action==='maps')aBtn=`<button class="mini-btn" onclick="abrirMaps()">Ruta →</button>`;
+    else if(action==='cabify')aBtn=`<button class="mini-btn" onclick="lanzarCabify()">Cabify →</button>`;
+    else if(action==='maps')aBtn=`<button class="mini-btn" onclick="abrirMaps()">Google Maps →</button>`;
     const isRT=rtState[k]||false;
     const rtSubOpen=(rtState[k]&&k!=='auto')?'open':'';
     const tMode=taxiModes[k]||'dos';
@@ -635,9 +635,9 @@ function buildRecojoCards(data){
   ].map(({k,n,ic,em,action})=>{
     const d=data[k];const ps=d.single!==null?`S/ ${d.single}`:`S/ ${d.min}–${d.max}`;
     let aBtn='';
-    if(action==='maps-abc')aBtn=`<button class="mini-btn" onclick="abrirMapsABC()">Ruta →</button>`;
+    if(action==='maps-abc')aBtn=`<button class="mini-btn" onclick="abrirMapsABC()">Google Maps →</button>`;
     else if(action==='uber-bc')aBtn=`<button class="mini-btn" onclick="lanzarUberBC()">Pedir →</button>`;
-    else if(action==='cab-bc')aBtn=`<button class="mini-btn" onclick="lanzarCabifyBC()">Abrir →</button>`;
+    else if(action==='cab-bc')aBtn=`<button class="mini-btn" onclick="lanzarCabifyBC()">Cabify →</button>`;
     return`<div class="rcard"><div class="rcard-icon ${ic}">${em}</div><div class="rcard-info"><div class="rcard-name">${n}</div><div class="rcard-detail">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price">${ps}<span class="su">soles</span></div>${aBtn}</div></div>`;
   }).join('')+'</div>';
 }
