@@ -34,7 +34,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
-.app{max-width:420px;margin:0 auto;padding:20px 16px 40px}
+.app{max-width:420px;margin:0 auto;padding:16px 14px 48px;width:100%}
 
 .app-header{display:flex;align-items:center;gap:10px;margin-bottom:24px}
 .app-icon{width:38px;height:38px;background:var(--yellow);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
@@ -43,7 +43,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 
 .config-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
 .config-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
-.config-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.config-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cfg-field label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
 .cfg-input-wrap{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:border-color .2s}
 .cfg-input-wrap:focus-within{border-color:var(--yellow)}
@@ -110,7 +110,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .results{display:none;margin-top:8px}
 .results.show{display:block}
 
-.verdict-card{border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.verdict-card{border-radius:var(--radius);padding:16px;margin-bottom:14px}
 .verdict-card.v-taxi{background:linear-gradient(135deg,rgba(56,189,248,.15) 0%,rgba(56,189,248,.05) 100%);border:1.5px solid var(--blue)}
 .verdict-card.v-auto{background:linear-gradient(135deg,rgba(74,222,128,.15) 0%,rgba(74,222,128,.05) 100%);border:1.5px solid var(--green)}
 .verdict-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -195,6 +195,62 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .traffic-badge{font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 8px;white-space:nowrap}
 .traffic-badge.live{color:var(--green);border-color:var(--green);background:var(--green-bg)}
 .traffic-badge.scheduled{color:var(--blue);border-color:var(--blue);background:var(--blue-bg)}
+
+/* ── RESPONSIVE MÓVIL ─────────────────────────────── */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*{-webkit-tap-highlight-color:transparent}
+input,button,select,textarea{
+  font-size:16px !important; /* evita zoom automático en iOS */
+  max-width:100%;
+}
+input[type=number]{font-size:16px !important}
+input[type=time]{font-size:16px !important;min-width:0;width:100%}
+input[type=text]{font-size:16px !important;width:100%}
+input[type=checkbox]{font-size:initial !important;width:15px !important}
+.save-inner{flex-wrap:wrap;gap:6px}
+.save-inner input{min-width:0;flex:1;font-size:16px !important}
+.cfg-input-wrap input{font-size:16px !important;font-weight:700}
+.hora-block{flex-wrap:wrap}
+.hora-block input[type=time]{min-width:120px;font-size:16px !important}
+.verd-stats{grid-template-columns:1fr 1fr}
+.action-row{flex-wrap:wrap}
+.action-row .act-btn{min-width:calc(50% - 4px);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{max-width:100%;word-break:break-word}
+.rcard{flex-wrap:nowrap}
+.rcard-detail{white-space:normal !important;font-size:10px}
+.modo-tabs{gap:6px}
+.mtab{font-size:13px;padding:12px 6px}
+.verdict-main{flex-wrap:wrap;gap:8px}
+.verdict-left .v-decision{font-size:24px}
+/* Save panel siempre dentro del viewport */
+.save-panel{width:100%;box-sizing:border-box}
+/* Hora block en móvil */
+.hora-block{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hora-now-btn{white-space:nowrap;flex-shrink:0}
+/* Desglose cards no se salen */
+.m1-card,.rcard{overflow:hidden}
+.m1-top{flex-wrap:nowrap;align-items:flex-start}
+.rcard-right{flex-shrink:0}
+/* Input destino principal */
+#voy-destino,#voy-origen-manual,#rec-b,#rec-c,#rec-a-manual{
+  font-size:16px !important;
+  width:100%;
+  box-sizing:border-box;
+}
+/* Nuevo lugar panel */
+#nuevo-lugar-addr,#nuevo-lugar-name{
+  font-size:16px !important;
+  width:100%;
+  box-sizing:border-box;
+}
+/* GPS save input */
+#gps-save-name,#gps-save-name-rec,#bsp-name,#csp-name,#vsp-name{
+  font-size:16px !important;
+  min-width:0;
+  flex:1;
+}
+
 </style>
 </head>
 <body>
@@ -296,7 +352,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
       <div class="save-panel" id="nuevo-lugar-panel" style="margin-top:6px">
         <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Guardar como:</div>
         <div style="margin-bottom:6px">
-          <input type="text" class="field-input" id="nuevo-lugar-addr" placeholder="Dirección o lugar..." style="width:100%;margin-bottom:6px">
+          <input type="text" class="field-input" id="nuevo-lugar-addr" placeholder="Dirección o lugar..." style="width:100%;margin-bottom:6px;font-size:16px">
           <div class="save-inner">
             <input type="text" id="nuevo-lugar-name" placeholder="Nombre (Ej: Casa, Gym...)">
             <button class="save-ok" onclick="guardarLugarNuevo()">✓</button>
@@ -366,7 +422,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
   <div class="slabel" style="margin-top:4px">🕐 Hora de salida</div>
   <div class="hora-block">
     <label>Salgo a las</label>
-    <input type="time" id="hora-salida" value="">
+    <input type="time" id="hora-salida" value="" style="flex:1;min-width:100px">
     <button class="hora-now-btn active" id="hora-now-btn" onclick="setHoraAhora()">Ahora</button>
     <span class="traffic-badge live" id="traffic-badge">🟢 Tráfico en vivo</span>
   </div>
@@ -376,7 +432,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
     <div class="slabel">🔄 Regreso (tramo B→C)</div>
     <div class="hora-block">
       <label>Regreso a las</label>
-      <input type="time" id="hora-retorno" value="">
+      <input type="time" id="hora-retorno" value="" style="flex:1;min-width:100px">
       <button class="hora-now-btn active" id="hora-ret-now-btn" onclick="setHoraRetornoAhora()">Ahora</button>
       <span class="traffic-badge live" id="traffic-ret-badge">🟢 Tráfico en vivo</span>
     </div>
