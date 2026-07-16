@@ -40,10 +40,9 @@
 html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
 .app{max-width:420px;margin:0 auto;padding:16px 14px 48px;width:100%}
 
-.app-header{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.app-icon{width:38px;height:38px;background:var(--yellow);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.app-title{font-size:18px;font-weight:800;letter-spacing:-.3px}
-.app-title span{color:var(--yellow)}
+.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.app-icon{width:30px;height:30px;background:var(--yellow-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.app-title{font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--text)}
 
 .config-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
 .config-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
@@ -58,10 +57,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .cfg-ratio{margin-top:10px;font-size:14px;color:var(--text2);text-align:center;border-top:1px solid var(--border);padding-top:10px}
 .cfg-ratio strong{color:var(--yellow);font-size:16px}
 
-.modo-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.mtab{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text2);cursor:pointer;text-align:center;line-height:1.4;transition:all .2s;min-height:var(--tap-min)}
-.mtab .mtab-icon{font-size:22px;display:inline;margin-right:6px}
-.mtab.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.modo-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:4px;gap:2px;margin-bottom:16px}
+.mtab{flex:1;background:transparent;border:none;border-radius:10px;padding:12px 10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text3);cursor:pointer;text-align:center;line-height:1.4;transition:all .2s;min-height:var(--tap-min)}
+.mtab .mtab-icon{font-size:16px;display:inline;margin-right:5px}
+.mtab.active{background:var(--yellow);color:var(--bg)}
 
 .slabel{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .punto-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800}
@@ -111,6 +110,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .save-ok:hover{background:var(--green);color:#000}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:9px 12px 9px 13px;min-height:40px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s}
+.chip.active-chip{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-bg)}
 .chip:hover{border-color:var(--yellow);color:var(--yellow)}
 .chip-x{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;display:flex;padding:2px;line-height:1}
 .chip-x:hover{color:var(--red)}
@@ -242,8 +242,6 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
 .chip{max-width:100%;word-break:break-word}
 .rcard{flex-wrap:nowrap}
 .rcard-detail{white-space:normal !important;font-size:12px}
-.modo-tabs{gap:6px}
-.mtab{font-size:15px;padding:12px 6px}
 .verdict-title{font-size:26px}
 /* Save panel siempre dentro del viewport */
 .save-panel{width:100%;box-sizing:border-box}
@@ -278,14 +276,12 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
 <body>
 <div class="app">
   <div class="app-header">
-    <div class="app-icon">🚕</div>
-    <div>
-      <div class="app-title">¿Auto o <span>Taxi</span>?</div>
-      <div style="font-size:13px;color:var(--text2);margin-top:1px">Decide en segundos · Lima</div>
-    </div>
+    <div class="app-title">¿Auto o Taxi?</div>
+    <div class="app-icon">📍</div>
   </div>
 
-  <div class="config-card">
+  <button class="chip" id="cfg-chip" onclick="toggleConfigPanel()" style="margin-bottom:12px">🚗 <span id="cfg-chip-text">S/ 1.15/km</span> · Modificar mi auto</button>
+  <div class="config-card" id="config-card" style="display:none">
     <div class="config-label">🚗 Mi auto</div>
     <div class="config-fields">
       <div class="cfg-field">
@@ -307,8 +303,8 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
   </div>
 
   <div class="modo-tabs">
-    <button class="mtab active" id="mtab-voy" onclick="setModo('voy')"><span class="mtab-icon">🧭</span> Voy</button>
-    <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')"><span class="mtab-icon">👤</span> Recoger</button>
+    <button class="mtab active" id="mtab-voy" onclick="setModo('voy')">Voy</button>
+    <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')">Recoger</button>
   </div>
   <div id="modo-desc" style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7;padding:0 2px"></div>
 
@@ -509,7 +505,18 @@ let microbus={km:null,min:null,sol:null};
 
 function getRatio(){return(parseFloat(document.getElementById('cfg-sol').value)||230)/(parseFloat(document.getElementById('cfg-km').value)||200)}
 function calcAuto(km){return Math.round(km*getRatio())}
-function onCfgChange(){document.getElementById('cfg-ratio-val').textContent='S/ '+getRatio().toFixed(2);if(distVial>0)refresh()}
+function onCfgChange(){
+  const r=getRatio().toFixed(2);
+  document.getElementById('cfg-ratio-val').textContent='S/ '+r;
+  document.getElementById('cfg-chip-text').textContent='S/ '+r+'/km';
+  if(distVial>0)refresh();
+}
+function toggleConfigPanel(){
+  const panel=document.getElementById('config-card');
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'block';
+  document.getElementById('cfg-chip').classList.toggle('active-chip',!isOpen);
+}
 
 function loadSaved(){
   try{
