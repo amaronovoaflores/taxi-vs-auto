@@ -147,11 +147,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .act-btn.primary-green:hover{background:var(--green);color:#000}
 
 .desglose-toggle{width:100%;background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px;min-height:44px;margin-bottom:6px;transition:color .2s}
+.swipe-hint{font-size:12px;color:var(--text2);text-align:center;margin-bottom:8px}
 .desglose-toggle:hover{color:var(--text)}
 .desglose-panel{display:none}
 .desglose-panel.open{display:block}
 
-.route-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.route-cards{display:flex;flex-direction:row;gap:10px;margin:0 -14px 10px;padding:2px 14px 8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.route-cards>*{scroll-snap-align:start;flex:0 0 84%;max-width:320px}
 .rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px}
 .rcard-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .ic-auto{background:rgba(74,222,128,.12);color:var(--green)}
@@ -167,7 +169,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .mini-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:9px 12px;min-height:40px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s}
 .mini-btn:hover{border-color:var(--yellow);color:var(--yellow)}
 
-.m1-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.m1-cards{display:flex;flex-direction:row;gap:10px;margin:0 -14px 10px;padding:2px 14px 8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.m1-cards>*{scroll-snap-align:start;flex:0 0 84%;max-width:320px}
 .m1-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
 .m1-top{display:flex;align-items:center;gap:11px}
 .m1-info{flex:1;min-width:0}
@@ -387,7 +390,7 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     </div>
     <div id="rec-gps-block" style="margin-bottom:8px">
       <div style="display:flex;gap:8px;align-items:center">
-        <div class="gps-block" style="flex:1;margin-bottom:0">
+        <div class="gps-block field-active-border" id="rec-a-gps-block" style="flex:1;margin-bottom:0;cursor:pointer" onclick="setFieldFocus('a')">
           <div class="gps-dot loading" id="rec-loc-dot"></div>
           <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
         </div>
@@ -399,7 +402,7 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
       </div>
     </div>
     <div id="rec-manual-block" style="display:none;margin-bottom:8px">
-      <input type="text" class="field-input" id="rec-a-manual" placeholder="Ej: Casa de mamá, Miraflores">
+      <input type="text" class="field-input" id="rec-a-manual" placeholder="Ej: Casa de mamá, Miraflores" onfocus="setFieldFocus('a')" oninput="setFieldFocus('a')">
     </div>
     <div class="divider"></div>
     <div class="slabel"><span class="punto-badge pb-b">B</span>&nbsp; Ella/él está en</div>
@@ -577,6 +580,20 @@ function usarLugar(i){
   } else if(campoActivo==='destino'){
     const el=document.getElementById('voy-destino');
     if(el)el.value=p.address||p.name;
+  } else if(campoActivo==='a'){
+    if(p.lat){
+      userLat=p.lat;userLon=p.lon;userAddr=p.address||p.name;
+      const dot=document.getElementById('rec-loc-dot');
+      const nm=document.getElementById('rec-loc-name');
+      const sub=document.getElementById('rec-loc-sub');
+      if(dot)dot.className='gps-dot';
+      if(nm)nm.textContent='📍 '+p.name;
+      if(sub)sub.textContent=p.address||'';
+      setRecojoOrigin('gps');
+    } else {
+      setRecojoOrigin('manual');
+      document.getElementById('rec-a-manual').value=p.address||p.name;
+    }
   } else if(campoActivo==='b'){
     const el=document.getElementById('rec-b');
     if(el)el.value=p.address||p.name;
@@ -623,17 +640,22 @@ let campoActivo = null; // 'origen' | 'destino' | 'b' | 'c'
 function setFieldFocus(campo){
   campoActivo = campo;
   // Resaltar campo activo
-  ['origen-gps-block'].forEach(id=>{
+  ['origen-gps-block','rec-a-gps-block'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.classList.toggle('active', campo==='origen');
+    if(el)el.classList.toggle('active', campo==='origen'||campo==='a');
   });
   const dest=document.getElementById('voy-destino');
   if(dest)dest.classList.toggle('field-active', campo==='destino');
+  const labels={origen:'✅ Origen activo — toca un lugar para cargarlo',destino:'✅ Destino activo — toca un lugar para cargarlo',a:'✅ Punto A activo',b:'✅ Punto B activo',c:'✅ Punto C activo'};
   const hint=document.getElementById('campo-activo-hint');
   if(hint){
-    const labels={origen:'✅ Origen activo — toca un lugar para cargarlo',destino:'✅ Destino activo — toca un lugar para cargarlo',b:'✅ Punto B activo',c:'✅ Punto C activo'};
     hint.textContent=labels[campo]||'Toca un campo, luego elige un lugar';
     hint.style.color=campo?'var(--yellow)':'var(--text2)';
+  }
+  const hintRec=document.getElementById('campo-activo-hint-rec');
+  if(hintRec){
+    hintRec.textContent=labels[campo]||'Toca un campo A, B o C, luego elige un lugar';
+    hintRec.style.color=campo?'var(--yellow)':'var(--text2)';
   }
 }
 
@@ -922,7 +944,7 @@ function renderVoy(dist){
     data[k]={...pr,single:null,detalle};
   });
   renderVerdict(data);
-  document.getElementById('desglose-content').innerHTML=buildM1Cards(data)+buildMicroCard();
+  document.getElementById('desglose-content').innerHTML=buildM1Cards(data);
 }
 
 function renderRecojo(dAB,dBC,dABC,durAB,durBC){
@@ -937,7 +959,7 @@ function renderRecojo(dAB,dBC,dABC,durAB,durBC){
     taxi:{...pTaxi('taxi',dBC),single:null,detalle:`B→C · ${dBC.toFixed(1)} km · ~${durBC} min`},
   };
   renderVerdict(data);
-  document.getElementById('desglose-content').innerHTML=buildRecojoCards(data)+buildMicroCard();
+  document.getElementById('desglose-content').innerHTML=buildRecojoCards(data);
 }
 
 function renderVerdict(data){
@@ -961,7 +983,7 @@ function renderVerdict(data){
 const rtState={auto:false,uber:false,cab:false,taxi:false};
 
 function buildM1Cards(data){
-  return'<div class="m1-cards">'+[
+  return'<div class="swipe-hint">👉 Deslizá para ver todas las opciones</div><div class="m1-cards">'+[
     {k:'auto',n:'Mi auto',ic:'ic-auto',em:'🚗',action:'maps'},
     {k:'uber',n:'Uber',ic:'ic-uber',em:'🔵',action:'uber'},
     {k:'cab',n:'Cabify',ic:'ic-cab',em:'🟡',action:'cabify'},
@@ -978,11 +1000,11 @@ function buildM1Cards(data){
     let rtPanel='';
     if(k!=='auto')rtPanel=`<div class="rt-opts ${rtSubOpen}" id="m1-rtsub-${k}"><div class="mode-pills"><button class="mpill ${tMode==='dos'?'active':''}" id="m1-togdos-${k}" onclick="setM1TMode('${k}','dos')">2 viajes</button><button class="mpill ${tMode==='espera'?'active':''}" id="m1-togesp-${k}" onclick="setM1TMode('${k}','espera')">Espera</button></div><div class="time-inputs ${tMode==='espera'?'open':''}" id="m1-tinp-${k}"><div class="time-col"><label>Hora ida</label><input type="time" id="m1-hi-${k}" value="09:00" onchange="refresh()"></div><div class="time-col"><label>Regreso</label><input type="time" id="m1-hr-${k}" value="10:30" onchange="refresh()"></div></div></div>`;
     return`<div class="m1-card"><div class="m1-top"><div class="rcard-icon ${ic}">${em}</div><div class="m1-info"><div class="rcard-name">${n}</div><div class="rcard-detail" id="m1-det-${k}">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price" id="m1-pr-${k}">${ps}<span class="su">soles</span></div>${aBtn}</div></div><div class="m1-footer"><label class="rt-check-label"><input type="checkbox" id="m1-rt-${k}" ${isRT?'checked':''} onchange="toggleM1RT('${k}')"> Ida y vuelta</label></div>${rtPanel}</div>`;
-  }).join('')+'</div>';
+  }).join('')+buildMicroCard()+'</div>';
 }
 
 function buildRecojoCards(data){
-  return'<div class="route-cards">'+[
+  return'<div class="swipe-hint">👉 Deslizá para ver todas las opciones</div><div class="route-cards">'+[
     {k:'auto',n:'Mi auto (A→B→C)',ic:'ic-auto',em:'🚗',action:'maps-abc'},
     {k:'uber',n:'Uber (B→C)',ic:'ic-uber',em:'🔵',action:'uber-bc'},
     {k:'cab',n:'Cabify (B→C)',ic:'ic-cab',em:'🟡',action:'cab-bc'},
@@ -994,7 +1016,7 @@ function buildRecojoCards(data){
     else if(action==='uber-bc')aBtn=`<button class="mini-btn" onclick="lanzarUberBC()">Pedir →</button>`;
     else if(action==='cab-bc')aBtn=`<button class="mini-btn" onclick="lanzarCabifyBC()">Cabify →</button>`;
     return`<div class="rcard"><div class="rcard-icon ${ic}">${em}</div><div class="rcard-info"><div class="rcard-name">${n}</div><div class="rcard-detail">${d.detalle}</div></div><div class="rcard-right"><div class="rcard-price">${ps}<span class="su">soles</span></div>${aBtn}</div></div>`;
-  }).join('')+'</div>';
+  }).join('')+buildMicroCard()+'</div>';
 }
 
 function toggleM1RT(k){
