@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F0F1A">
+<meta name="theme-color" content="#0B0B14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Auto o Taxi?">
@@ -15,12 +15,13 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjOBgEngBzLZh1yiF1bkq4C-KtdiILHCI&libraries=places"></script>
 <style>
 :root{
-  --bg:#0F0F1A;
-  --bg2:#181828;
-  --bg3:#1E1E32;
-  --border:#2A2A42;
-  --text:#F0F0FF;
-  --text2:#A3A3CC;
+  --bg:#0B0B14;
+  --bg2:#17171F;
+  --bg3:#1F1F2B;
+  --border:#2E2E40;
+  --text:#F5F5FF;
+  --text2:#B4B4D4;
+  --text3:#8C8CB0;
   --yellow:#F5C842;
   --green:#4ADE80;
   --blue:#38BDF8;
@@ -63,26 +64,39 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .mtab.active{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
 
 .slabel{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.punto-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700}
-.pb-a{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)}
-.pb-b{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow)}
-.pb-c{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.punto-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800}
+.pb-a{background:var(--green);color:var(--bg)}
+.pb-b{background:var(--yellow);color:var(--bg)}
+.pb-c{background:var(--blue);color:var(--bg)}
 
 .origin-tabs{display:flex;gap:6px;margin-bottom:8px}
 .otab{flex:1;padding:12px 7px;min-height:var(--tap-min);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:all .2s}
 .otab.active{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+
+/* ── fcard: patrón de tarjeta de campo (origen/destino/A/B/C) ── */
+.fcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 14px}
+.fcard-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.fcard-row{display:flex;align-items:center;gap:10px}
+.fcard-text{flex:1;min-width:0}
+.fcard-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fcard-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.fcard-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;font-weight:600;padding:2px 0}
+.fcard-input::placeholder{color:var(--text3)}
+.fdot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 0 4px var(--green-bg)}
+.fdot.loading{background:var(--yellow);box-shadow:0 0 0 4px var(--yellow-bg);animation:blink 1s infinite}
+.fdot.error{background:var(--red);box-shadow:0 0 0 4px var(--red-bg)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.save-icon-btn{flex-shrink:0;width:36px;height:36px;border-radius:9px;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);transition:all .2s}
+.save-icon-btn.ready{background:var(--yellow-bg);color:var(--yellow)}
+/* Compat: alias de nombres antiguos usados en algunos bloques */
 .gps-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .gps-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
 .gps-dot.loading{background:var(--yellow);animation:blink 1s infinite}
 .gps-dot.error{background:var(--red)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .gps-text{flex:1}
 .gps-name{font-size:15px;font-weight:600;color:var(--text)}
 .gps-sub{font-size:12px;color:var(--text2);margin-top:1px}
 .retry-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:8px 12px;min-height:40px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
-
-.input-block{margin-bottom:12px}
-.input-wrap{display:flex;gap:8px;align-items:center}
 .field-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:16px;padding:13px 14px;min-height:var(--tap-min);transition:border-color .2s;width:100%}
 .field-input:focus{outline:none;border-color:var(--yellow)}
 .field-input::placeholder{color:var(--text2)}
@@ -103,7 +117,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
 
-.calc-btn{width:100%;padding:16px;min-height:52px;background:var(--yellow);border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:18px;font-weight:800;color:#0F0F1A;cursor:pointer;letter-spacing:-.2px;transition:all .2s;margin-top:4px}
+.calc-btn{width:100%;padding:16px;min-height:52px;background:linear-gradient(180deg,#F7D268,var(--yellow));border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:18px;font-weight:800;color:var(--bg);cursor:pointer;letter-spacing:-.2px;transition:all .2s;margin-top:4px;box-shadow:0 6px 18px rgba(245,200,66,.25)}
 .calc-btn:hover{background:#FFD700}
 .calc-btn:active{transform:scale(.98)}
 .calc-btn:disabled{background:var(--bg3);color:var(--text2);cursor:not-allowed}
@@ -113,26 +127,18 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .results{display:none;margin-top:8px}
 .results.show{display:block}
 
-.verdict-card{border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.verdict-card{border-radius:16px;padding:18px;margin-bottom:14px}
 .verdict-card.v-taxi{background:linear-gradient(135deg,rgba(56,189,248,.15) 0%,rgba(56,189,248,.05) 100%);border:1.5px solid var(--blue)}
 .verdict-card.v-auto{background:linear-gradient(135deg,rgba(74,222,128,.15) 0%,rgba(74,222,128,.05) 100%);border:1.5px solid var(--green)}
-.verdict-tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.verdict-tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:6px}
 .v-taxi .verdict-tag{color:var(--blue)}
 .v-auto .verdict-tag{color:var(--green)}
-.verdict-main{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
-.verdict-left .v-label{font-size:13px;color:var(--text2);margin-bottom:2px}
-.verdict-left .v-decision{font-size:30px;font-weight:900;letter-spacing:-1px;line-height:1}
-.v-taxi .verdict-left .v-decision{color:var(--blue)}
-.v-auto .verdict-left .v-decision{color:var(--green)}
-.verdict-left .v-sub{font-size:14px;color:var(--text2);margin-top:4px}
-.verdict-right .v-saving-label{font-size:12px;color:var(--text2);margin-bottom:1px;text-align:right}
-.verdict-right .v-saving-val{font-size:24px;font-weight:900;letter-spacing:-.5px}
-.v-taxi .verdict-right .v-saving-val{color:var(--blue)}
-.v-auto .verdict-right .v-saving-val{color:var(--green)}
-.verdict-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.vstat{background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:10px 12px}
-.vstat-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:3px}
-.vstat-val{font-size:19px;font-weight:800;color:var(--text)}
+.verdict-title{font-size:30px;font-weight:900;color:var(--text);letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
+.verdict-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.vstat3-label{font-size:11.5px;color:var(--text2);margin-bottom:3px}
+.vstat3-val{font-size:22px;font-weight:900;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.v-taxi .vstat3-val{color:var(--blue)}
+.v-auto .vstat3-val{color:var(--green)}
 .verdict-tope{font-size:13px;color:var(--text2);background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:10px 12px;line-height:1.6;border-left:2px solid}
 .v-taxi .verdict-tope{border-left-color:var(--blue)}
 .v-auto .verdict-tope{border-left-color:var(--green)}
@@ -185,9 +191,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .time-col input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;padding:9px 8px;min-height:40px}
 .time-col input:focus{outline:none;border-color:var(--yellow)}
 .note{font-size:12px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6}
-.field-active{border-color:var(--yellow) !important;box-shadow:0 0 0 2px rgba(245,200,66,0.2)}
-.field-active-border{border-color:var(--border);transition:border-color .2s}
-.field-active-border.active{border-color:var(--yellow);box-shadow:0 0 0 2px rgba(245,200,66,0.2)}
+.field-active{border-width:2px !important;border-color:var(--yellow) !important;box-shadow:0 0 0 3px rgba(245,200,66,.14)}
+.field-active-border{border-color:var(--border);transition:border-color .2s,border-width .2s,box-shadow .2s}
+.field-active-border.active{border-width:2px;border-color:var(--yellow);box-shadow:0 0 0 3px rgba(245,200,66,.14)}
+.field-active-border.active .fcard-label{color:var(--yellow)}
 .hora-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hora-block label{font-size:14px;color:var(--text2);white-space:nowrap}
 .hora-block input[type=time]{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;font-weight:600;padding:9px 10px;min-height:44px;flex:1;min-width:100px}
@@ -237,8 +244,7 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
 .rcard-detail{white-space:normal !important;font-size:12px}
 .modo-tabs{gap:6px}
 .mtab{font-size:15px;padding:12px 6px}
-.verdict-main{flex-wrap:wrap;gap:8px}
-.verdict-left .v-decision{font-size:26px}
+.verdict-title{font-size:26px}
 /* Save panel siempre dentro del viewport */
 .save-panel{width:100%;box-sizing:border-box}
 /* Hora block en móvil */
@@ -310,21 +316,21 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
   <div id="inputs-voy">
 
     <!-- ── ORIGEN ── -->
-    <div class="slabel">📍 Origen</div>
-
-    <!-- GPS activo -->
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-      <div class="gps-block field-active-border" id="origen-gps-block" style="flex:1;margin-bottom:0;cursor:pointer" onclick="setFieldFocus('origen')">
-        <div class="gps-dot loading" id="loc-dot"></div>
-        <div class="gps-text">
-          <div class="gps-name" id="loc-name">Obteniendo ubicación...</div>
-          <div class="gps-sub" id="loc-sub">Esperando GPS</div>
+    <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
+      <div class="fcard field-active-border" id="origen-gps-block" style="flex:1;cursor:pointer" onclick="setFieldFocus('origen')">
+        <div class="fcard-label">Desde</div>
+        <div class="fcard-row">
+          <span class="fdot loading" id="loc-dot"></span>
+          <div class="fcard-text">
+            <div class="fcard-name" id="loc-name">Obteniendo ubicación...</div>
+            <div class="fcard-sub" id="loc-sub">Esperando GPS</div>
+          </div>
+          <button class="retry-btn" id="loc-retry" onclick="geolocate();event.stopPropagation()" style="display:none">↺</button>
         </div>
-        <button class="retry-btn" id="loc-retry" onclick="geolocate();event.stopPropagation()" style="display:none">↺</button>
       </div>
       <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación GPS">🔖</button>
     </div>
-    <div class="save-panel" id="gps-save" style="margin-bottom:6px">
+    <div class="save-panel" id="gps-save" style="margin-bottom:8px">
       <div style="font-size:13px;color:var(--text2)">Guardar ubicación actual como:</div>
       <div class="save-inner">
         <input type="text" id="gps-save-name" placeholder="Ej: Casa, Oficina...">
@@ -333,27 +339,32 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     </div>
 
     <!-- Input manual origen -->
-    <div id="voy-manual-block" style="display:none;margin-bottom:6px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" class="field-input" id="voy-origen-manual"
-          placeholder="Escribe una dirección..."
-          style="flex:1"
+    <div id="voy-manual-block" style="display:none;margin-bottom:8px">
+      <div class="fcard field-active-border active" style="display:flex;align-items:center;gap:8px">
+        <input type="text" class="fcard-input" id="voy-origen-manual"
+          placeholder="Escribí una dirección"
           onfocus="setFieldFocus('origen')"
           oninput="setFieldFocus('origen')">
-        <button class="save-btn" onclick="clearManualOrigen()" title="Volver a GPS">📡</button>
+        <button class="save-icon-btn" onclick="clearManualOrigen()" title="Volver a GPS">📡</button>
       </div>
     </div>
     <button class="chip" onclick="mostrarManualOrigen()" style="border-style:dashed;color:var(--text2);margin-bottom:8px">✏️ Escribir dirección</button>
 
-    <div class="divider"></div>
-
     <!-- ── DESTINO ── -->
-    <div class="slabel">📍 Destino</div>
-    <input type="text" class="field-input" id="voy-destino"
-      placeholder="¿A dónde vas?"
-      style="width:100%;margin-bottom:8px"
-      onfocus="setFieldFocus('destino')"
-      oninput="setFieldFocus('destino')">
+    <div class="fcard field-active-border" id="destino-card" style="margin-bottom:8px">
+      <div class="fcard-label">¿A dónde vas?</div>
+      <div class="fcard-row">
+        <input type="text" class="fcard-input" id="voy-destino"
+          placeholder="Escribí una dirección"
+          onfocus="setFieldFocus('destino')"
+          oninput="setFieldFocus('destino');document.getElementById('destino-save-btn').classList.toggle('ready',this.value.trim().length>0)">
+        <button class="save-icon-btn" id="destino-save-btn" onclick="toggleSave('dsp','voy-destino')" title="Guardar dirección">🔖</button>
+      </div>
+    </div>
+    <div class="save-panel" id="dsp" style="margin-bottom:8px">
+      <div style="font-size:13px;color:var(--text2)">Guardar como:</div>
+      <div class="save-inner"><input type="text" id="dsp-name" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardar('dsp','voy-destino','dsp-name','voy-chips')">✓</button></div>
+    </div>
 
     <div class="divider"></div>
 
@@ -381,53 +392,69 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
 
   <!-- MODO RECOJO -->
   <div id="inputs-recojo" style="display:none">
-    <div class="slabel"><span class="punto-badge pb-a">A</span>&nbsp; Yo estoy en</div>
+
+    <!-- ── PUNTO A ── -->
     <div class="origin-tabs">
       <button class="otab active" id="rtab-gps" onclick="setRecojoOrigin('gps')">📡 GPS</button>
       <button class="otab" id="rtab-manual" onclick="setRecojoOrigin('manual')">✏️ Escribir</button>
     </div>
     <div id="rec-gps-block" style="margin-bottom:8px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="gps-block field-active-border" id="rec-a-gps-block" style="flex:1;margin-bottom:0;cursor:pointer" onclick="setFieldFocus('a')">
-          <div class="gps-dot loading" id="rec-loc-dot"></div>
-          <div class="gps-text"><div class="gps-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="gps-sub" id="rec-loc-sub">Esperando GPS</div></div>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <div class="fcard field-active-border" id="rec-a-gps-block" style="flex:1;cursor:pointer" onclick="setFieldFocus('a')">
+          <div class="fcard-label"><span class="punto-badge pb-a">A</span> Tu punto de partida</div>
+          <div class="fcard-row">
+            <span class="fdot loading" id="rec-loc-dot"></span>
+            <div class="fcard-text"><div class="fcard-name" id="rec-loc-name">Obteniendo ubicación...</div><div class="fcard-sub" id="rec-loc-sub">Esperando GPS</div></div>
+          </div>
         </div>
         <button class="save-btn" onclick="toggleSaveGPS('gps-save')" title="Guardar ubicación actual">🔖</button>
       </div>
-      <div class="save-panel" id="gps-save-rec" style="margin-top:6px">
+      <div class="save-panel" id="gps-save-rec" style="margin-top:8px">
         <div style="font-size:13px;color:var(--text2)">Guardar esta ubicación como:</div>
         <div class="save-inner"><input type="text" id="gps-save-name-rec" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardarGPS()">✓</button></div>
       </div>
     </div>
     <div id="rec-manual-block" style="display:none;margin-bottom:8px">
-      <input type="text" class="field-input" id="rec-a-manual" placeholder="Ej: Casa de mamá, Miraflores" onfocus="setFieldFocus('a')" oninput="setFieldFocus('a')">
+      <div class="fcard field-active-border active">
+        <div class="fcard-label"><span class="punto-badge pb-a">A</span> Tu punto de partida</div>
+        <input type="text" class="fcard-input" id="rec-a-manual" placeholder="Ej: Casa de mamá, Miraflores" onfocus="setFieldFocus('a')" oninput="setFieldFocus('a')">
+      </div>
     </div>
+
     <div class="divider"></div>
-    <div class="slabel"><span class="punto-badge pb-b">B</span>&nbsp; Ella/él está en</div>
-    <div class="input-block">
-      <div class="input-wrap">
-        <input type="text" class="field-input" id="rec-b" placeholder="Ej: Universidad de Lima" oninput="hideSave('bsp')" onfocus="setFieldFocus('b')">
-        <button class="save-btn" onclick="toggleSave('bsp','rec-b')">🔖</button>
+
+    <!-- ── PUNTO B ── -->
+    <div class="fcard field-active-border" id="rec-b-card" style="margin-bottom:8px">
+      <div class="fcard-label"><span class="punto-badge pb-b">B</span> A quién recogés</div>
+      <div class="fcard-row">
+        <input type="text" class="fcard-input" id="rec-b" placeholder="Dirección de la persona" oninput="hideSave('bsp');setFieldFocus('b');document.getElementById('rec-b-save-btn').classList.toggle('ready',this.value.trim().length>0)" onfocus="setFieldFocus('b')">
+        <button class="save-icon-btn" id="rec-b-save-btn" onclick="toggleSave('bsp','rec-b')">🔖</button>
       </div>
-      <div class="save-panel" id="bsp">
-        <div style="font-size:13px;color:var(--text2)">Guardar como:</div>
-        <div class="save-inner"><input type="text" id="bsp-name" placeholder="Ej: Uni, Colegio..."><button class="save-ok" onclick="guardar('bsp','rec-b','bsp-name','rec-b-chips')">✓</button></div>
-      </div>
-      <div class="chips" id="rec-b-chips"></div>
     </div>
+    <div class="save-panel" id="bsp" style="margin-bottom:8px">
+      <div style="font-size:13px;color:var(--text2)">Guardar como:</div>
+      <div class="save-inner"><input type="text" id="bsp-name" placeholder="Ej: Uni, Colegio..."><button class="save-ok" onclick="guardar('bsp','rec-b','bsp-name','rec-b-chips')">✓</button></div>
+    </div>
+    <div class="chips" id="rec-b-chips" style="margin-bottom:8px"></div>
+
     <div class="divider"></div>
-    <div class="slabel"><span class="punto-badge pb-c">C</span>&nbsp; Destino final</div>
-    <div class="input-block">
-      <div class="input-wrap">
-        <input type="text" class="field-input" id="rec-c" placeholder="Ej: Nuestra casa, San Borja" oninput="hideSave('csp')" onfocus="setFieldFocus('c')">
-        <button class="save-btn" onclick="toggleSave('csp','rec-c')">🔖</button>
+
+    <!-- ── PUNTO C ── -->
+    <div class="fcard field-active-border" id="rec-c-card" style="margin-bottom:8px">
+      <div class="fcard-label"><span class="punto-badge pb-c">C</span> Destino final</div>
+      <div class="fcard-row">
+        <input type="text" class="fcard-input" id="rec-c" placeholder="¿A dónde van?" oninput="hideSave('csp');setFieldFocus('c');document.getElementById('rec-c-save-btn').classList.toggle('ready',this.value.trim().length>0)" onfocus="setFieldFocus('c')">
+        <button class="save-icon-btn" id="rec-c-save-btn" onclick="toggleSave('csp','rec-c')">🔖</button>
       </div>
-      <div class="save-panel" id="csp">
-        <div style="font-size:13px;color:var(--text2)">Guardar como:</div>
-        <div class="save-inner"><input type="text" id="csp-name" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardar('csp','rec-c','csp-name','rec-c-chips')">✓</button></div>
-      </div>
-      <div class="chips" id="rec-c-chips"></div>
     </div>
+    <div class="save-panel" id="csp" style="margin-bottom:8px">
+      <div style="font-size:13px;color:var(--text2)">Guardar como:</div>
+      <div class="save-inner"><input type="text" id="csp-name" placeholder="Ej: Casa, Oficina..."><button class="save-ok" onclick="guardar('csp','rec-c','csp-name','rec-c-chips')">✓</button></div>
+    </div>
+    <div class="chips" id="rec-c-chips" style="margin-bottom:8px"></div>
+
+    <div style="font-size:12px;color:var(--text3);padding:0 2px;margin-bottom:8px">Se calcula el trayecto completo A → B → C, ida y regreso a tu punto de partida.</div>
+
     <div class="divider"></div>
     <div class="slabel">🔖 Mis lugares</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="campo-activo-hint-rec">Toca un campo A, B o C, luego elige un lugar</div>
@@ -651,8 +678,11 @@ function setFieldFocus(campo){
     const el=document.getElementById(id);
     if(el)el.classList.toggle('active', campo==='origen'||campo==='a');
   });
-  const dest=document.getElementById('voy-destino');
-  if(dest)dest.classList.toggle('field-active', campo==='destino');
+  const cardTargets={destino:'destino-card',b:'rec-b-card',c:'rec-c-card'};
+  ['destino-card','rec-b-card','rec-c-card'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.toggle('active', cardTargets[campo]===id);
+  });
   const labels={origen:'✅ Origen activo — toca un lugar para cargarlo',destino:'✅ Destino activo — toca un lugar para cargarlo',a:'✅ Punto A activo',b:'✅ Punto B activo',c:'✅ Punto C activo'};
   const hint=document.getElementById('campo-activo-hint');
   if(hint){
@@ -1008,12 +1038,13 @@ function renderVerdict(data){
   const best=[{name:'Uber',min:data.uber.min},{name:'Cabify',min:data.cab.min},{name:'Taxi',min:data.taxi.min}].reduce((a,b)=>a.min<b.min?a:b);
   const convieneTaxi=best.min<costAuto;
   const ahorro=Math.abs(costAuto-best.min);
+  const tiempo=autoDur?autoDur+' min':'—';
   const vb=document.getElementById('verdict-block'),ar=document.getElementById('action-row');
   if(convieneTaxi){
-    vb.innerHTML=`<div class="verdict-card v-taxi"><div class="verdict-tag">🏆 Conviene el taxi</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Mejor opción</div><div class="v-decision">${best.name}</div><div class="v-sub">desde S/ ${best.min}</div></div><div class="verdict-right"><div class="v-saving-label">Ahorras</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Taxi estimado</div><div class="vstat-val">S/ ${best.min}+</div></div><div class="vstat"><div class="vstat-label">Tu auto costaría</div><div class="vstat-val">S/ ${costAuto}</div></div></div><div class="verdict-tope">⚡ Tope: si el taxi supera <strong>S/ ${costAuto}</strong>, ya no conviene.</div></div>`;
+    vb.innerHTML=`<div class="verdict-card v-taxi"><div class="verdict-tag">🏆 Conviene el taxi</div><div class="verdict-title">${best.name}</div><div class="verdict-grid3"><div><div class="vstat3-label">Costo</div><div class="vstat3-val">S/ ${best.min}+</div></div><div><div class="vstat3-label">Tiempo</div><div class="vstat3-val">${tiempo}</div></div><div><div class="vstat3-label">Ahorrás</div><div class="vstat3-val">S/ ${ahorro}</div></div></div><div class="verdict-tope">⚡ Tope: si el taxi supera <strong>S/ ${costAuto}</strong>, ya no conviene.</div></div>`;
     ar.innerHTML=`<button class="act-btn primary-blue" onclick="lanzarUber()">🚗 Pedir Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Abrir Cabify</button><button class="act-btn" onclick="abrirMaps()">🗺 Maps</button>`;
   }else{
-    vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-main"><div class="verdict-left"><div class="v-label">Más barato</div><div class="v-decision">Tu auto</div><div class="v-sub">S/ ${costAuto} en gasolina</div></div><div class="verdict-right"><div class="v-saving-label">Taxi más caro en</div><div class="v-saving-val">S/ ${ahorro}</div></div></div><div class="verdict-stats"><div class="vstat"><div class="vstat-label">Tu auto · ${autoKm?autoKm.toFixed(1)+'km ':''} ${autoDur?'~'+autoDur+'min':''}</div><div class="vstat-val">S/ ${costAuto}</div></div><div class="vstat"><div class="vstat-label">Taxi más barato</div><div class="vstat-val">S/ ${best.min}+</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
+    vb.innerHTML=`<div class="verdict-card v-auto"><div class="verdict-tag">🏆 Conviene tu auto</div><div class="verdict-title">Tu auto</div><div class="verdict-grid3"><div><div class="vstat3-label">Costo</div><div class="vstat3-val">S/ ${costAuto}</div></div><div><div class="vstat3-label">Tiempo</div><div class="vstat3-val">${tiempo}</div></div><div><div class="vstat3-label">Ahorrás</div><div class="vstat3-val">S/ ${ahorro}</div></div></div><div class="verdict-tope">💡 Si consigues taxi por menos de <strong>S/ ${costAuto}</strong>, podría convenir.</div></div>`;
     ar.innerHTML=`<button class="act-btn primary-green" onclick="abrirMaps()">🗺 Google Maps</button><button class="act-btn" onclick="lanzarUber()">🚗 Uber</button><button class="act-btn" onclick="lanzarCabify()">🟡 Cabify</button>`;
   }
 }
