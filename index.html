@@ -43,6 +43,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .app-icon{width:30px;height:30px;background:var(--yellow-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .app-title{font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--text)}
+.header-chip{background:var(--red-bg);border:1px solid var(--red);border-radius:20px;padding:5px 10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--red);cursor:pointer;white-space:nowrap;transition:all .2s}
+.header-chip.active-chip{background:var(--red);color:var(--bg)}
 
 .config-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
 .config-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
@@ -110,7 +112,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .save-ok:hover{background:var(--green);color:#000}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:9px 12px 9px 13px;min-height:40px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s}
-.chip.active-chip{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-bg)}
 .chip:hover{border-color:var(--yellow);color:var(--yellow)}
 .chip-x{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;display:flex;padding:2px;line-height:1}
 .chip-x:hover{color:var(--red)}
@@ -277,10 +278,12 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
 <div class="app">
   <div class="app-header">
     <div class="app-title">¿Auto o Taxi?</div>
-    <div class="app-icon">📍</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="traffic-badge live" id="traffic-badge">🟢 Tráfico en vivo</span>
+      <button class="header-chip" id="cfg-chip" onclick="toggleConfigPanel()" title="Ver/modificar mi auto">🚗 Mi auto</button>
+    </div>
   </div>
 
-  <button class="chip" id="cfg-chip" onclick="toggleConfigPanel()" style="margin-bottom:12px">🚗 <span id="cfg-chip-text">S/ 1.15/km</span> · Modificar mi auto</button>
   <div class="config-card" id="config-card" style="display:none">
     <div class="config-label">🚗 Mi auto</div>
     <div class="config-fields">
@@ -306,8 +309,6 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     <button class="mtab active" id="mtab-voy" onclick="setModo('voy')">Voy</button>
     <button class="mtab" id="mtab-recojo" onclick="setModo('recojo')">Recoger</button>
   </div>
-  <div id="modo-desc" style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7;padding:0 2px"></div>
-
   <!-- MODO VOY -->
   <div id="inputs-voy">
 
@@ -365,9 +366,11 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     <div class="divider"></div>
 
     <!-- ── LUGARES GUARDADOS (banco único) ── -->
-    <div class="slabel">🔖 Mis lugares</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="campo-activo-hint">Toca un campo arriba, luego elige un lugar</div>
-    <div class="chips" id="lugares-chips"></div>
+    <div id="lugares-panel-voy" style="display:none">
+      <div class="slabel">🔖 Mis lugares</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="campo-activo-hint">Toca un campo arriba, luego elige un lugar</div>
+      <div class="chips" id="lugares-chips"></div>
+    </div>
 
     <!-- Guardar nuevo lugar -->
     <div style="margin-top:8px">
@@ -452,9 +455,11 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     <div style="font-size:12px;color:var(--text3);padding:0 2px;margin-bottom:8px">Se calcula el trayecto completo A → B → C, ida y regreso a tu punto de partida.</div>
 
     <div class="divider"></div>
-    <div class="slabel">🔖 Mis lugares</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="campo-activo-hint-rec">Toca un campo A, B o C, luego elige un lugar</div>
-    <div class="chips" id="lugares-chips-rec"></div>
+    <div id="lugares-panel-rec" style="display:none">
+      <div class="slabel">🔖 Mis lugares</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="campo-activo-hint-rec">Toca un campo A, B o C, luego elige un lugar</div>
+      <div class="chips" id="lugares-chips-rec"></div>
+    </div>
   </div>
 
   <!-- HORA DE SALIDA -->
@@ -463,7 +468,6 @@ input[type=checkbox]{font-size:initial !important;width:15px !important}
     <label>Salgo a las</label>
     <input type="time" id="hora-salida" value="" style="flex:1;min-width:100px">
     <button class="hora-now-btn active" id="hora-now-btn" onclick="setHoraAhora()">Ahora</button>
-    <span class="traffic-badge live" id="traffic-badge">🟢 Tráfico en vivo</span>
   </div>
 
   <!-- HORA RETORNO RECOGER -->
@@ -506,9 +510,7 @@ let microbus={km:null,min:null,sol:null};
 function getRatio(){return(parseFloat(document.getElementById('cfg-sol').value)||230)/(parseFloat(document.getElementById('cfg-km').value)||200)}
 function calcAuto(km){return Math.round(km*getRatio())}
 function onCfgChange(){
-  const r=getRatio().toFixed(2);
-  document.getElementById('cfg-ratio-val').textContent='S/ '+r;
-  document.getElementById('cfg-chip-text').textContent='S/ '+r+'/km';
+  document.getElementById('cfg-ratio-val').textContent='S/ '+getRatio().toFixed(2);
   if(distVial>0)refresh();
 }
 function toggleConfigPanel(){
@@ -701,6 +703,11 @@ function setFieldFocus(campo){
     hintRec.textContent=labels[campo]||'Toca un campo A, B o C, luego elige un lugar';
     hintRec.style.color=campo?'var(--yellow)':'var(--text2)';
   }
+  // "Mis lugares" solo aparece una vez que tocás un campo — ahorra espacio en pantalla
+  const lp=document.getElementById('lugares-panel-voy');
+  if(lp)lp.style.display=campo?'block':'none';
+  const lpRec=document.getElementById('lugares-panel-rec');
+  if(lpRec)lpRec.style.display=campo?'block':'none';
 }
 
 function toggleSave(pid,inputId){
@@ -754,14 +761,7 @@ function setModo(m){
   document.getElementById('mtab-recojo').classList.toggle('active',m==='recojo');
   document.getElementById('inputs-voy').style.display=m==='voy'?'block':'none';
   document.getElementById('inputs-recojo').style.display=m==='recojo'?'block':'none';
-  const desc=document.getElementById('modo-desc');
-  if(m==='voy'){
-    desc.innerHTML='<b style="color:var(--text)">Auto:</b> A → B (con opción ida y vuelta) &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> A → B';
-    document.getElementById('hora-retorno-block').style.display='none';
-  } else {
-    desc.innerHTML='<b style="color:var(--text)">Mi auto:</b> A → B → C &nbsp;·&nbsp; <b style="color:var(--text)">Taxi:</b> B → C directo';
-    document.getElementById('hora-retorno-block').style.display='block';
-  }
+  document.getElementById('hora-retorno-block').style.display=m==='voy'?'none':'block';
   document.getElementById('results').classList.remove('show');
   distVial=0;
   if(m==='recojo'&&userLat!==null)syncRecojoGPS();
