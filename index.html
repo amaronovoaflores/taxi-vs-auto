@@ -147,13 +147,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .act-btn.primary-green:hover{background:var(--green);color:#000}
 
 .desglose-toggle{width:100%;background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px;min-height:44px;margin-bottom:6px;transition:color .2s}
-.swipe-hint{font-size:12px;color:var(--text2);text-align:center;margin-bottom:8px}
 .desglose-toggle:hover{color:var(--text)}
 .desglose-panel{display:none}
 .desglose-panel.open{display:block}
 
-.route-cards{display:flex;flex-direction:row;gap:10px;margin:0 -14px 10px;padding:2px 14px 8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-.route-cards>*{scroll-snap-align:start;flex:0 0 84%;max-width:320px}
+.route-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px}
 .rcard-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .ic-auto{background:rgba(74,222,128,.12);color:var(--green)}
@@ -169,8 +167,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .mini-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:9px 12px;min-height:40px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s}
 .mini-btn:hover{border-color:var(--yellow);color:var(--yellow)}
 
-.m1-cards{display:flex;flex-direction:row;gap:10px;margin:0 -14px 10px;padding:2px 14px 8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-.m1-cards>*{scroll-snap-align:start;flex:0 0 84%;max-width:320px}
+.m1-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .m1-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
 .m1-top{display:flex;align-items:center;gap:11px}
 .m1-info{flex:1;min-width:0}
@@ -205,6 +202,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
 .ic-micro{background:var(--purple-bg);color:var(--purple)}
 .m1-card-micro{border-color:var(--purple);background:linear-gradient(135deg,rgba(183,148,246,.10) 0%,rgba(183,148,246,.02) 100%);margin-top:4px}
 .micro-tag{font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.micro-tag-auto{color:var(--green);background:var(--green-bg);border-color:var(--green)}
 .micro-inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
 .micro-field label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
 .micro-input-wrap{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;min-height:44px;transition:border-color .2s}
@@ -509,23 +507,32 @@ function onMicroChange(){
     km:parseFloat(document.getElementById('micro-km').value)||null,
     min:parseFloat(document.getElementById('micro-min').value)||null,
     sol:parseFloat(document.getElementById('micro-sol').value)||null,
+    auto:false,
   };
+  saveToDisk();
+}
+function aplicarTransitAMicrobus(info){
+  if(!info)return;
+  if(microbus.km!==null)return; // ya hay un dato manual del usuario, no lo pisamos
+  microbus={km:Math.round(info.distKm*10)/10,min:info.durMin,sol:null,auto:true};
   saveToDisk();
 }
 function buildMicroCard(){
   const m=microbus||{};
+  const tag=m.auto?'<span class="micro-tag micro-tag-auto">🔍 detectado por Maps</span>':'<span class="micro-tag">informativo</span>';
+  const detalle=m.auto?'No participa en la comparación · revisá y corregí si tu ruta es distinta':'No participa en la comparación · dato de referencia';
   return `<div class="m1-card m1-card-micro">
     <div class="m1-top">
       <div class="rcard-icon ic-micro">🚌</div>
       <div class="m1-info">
-        <div class="rcard-name">Microbús <span class="micro-tag">informativo</span></div>
-        <div class="rcard-detail">No participa en la comparación · dato de referencia</div>
+        <div class="rcard-name">Microbús ${tag}</div>
+        <div class="rcard-detail">${detalle}</div>
       </div>
     </div>
     <div class="micro-inputs">
-      <div class="micro-field"><label>Distancia</label><div class="micro-input-wrap"><input type="number" id="micro-km" step="0.1" min="0" inputmode="decimal" placeholder="0.0" value="${m.km??''}" oninput="onMicroChange()"><span class="micro-unit">km</span></div></div>
-      <div class="micro-field"><label>Tiempo</label><div class="micro-input-wrap"><input type="number" id="micro-min" step="1" min="0" inputmode="numeric" placeholder="0" value="${m.min??''}" oninput="onMicroChange()"><span class="micro-unit">min</span></div></div>
-      <div class="micro-field"><label>Costo</label><div class="micro-input-wrap"><span class="micro-prefix">S/</span><input type="number" id="micro-sol" step="0.5" min="0" inputmode="decimal" placeholder="0.00" value="${m.sol??''}" oninput="onMicroChange()"></div></div>
+      <div class="micro-field"><label>Distancia</label><div class="micro-input-wrap"><input type="number" id="micro-km" step="0.1" min="0" inputmode="decimal" placeholder="km" value="${m.km??''}" oninput="onMicroChange()"><span class="micro-unit">km</span></div></div>
+      <div class="micro-field"><label>Tiempo</label><div class="micro-input-wrap"><input type="number" id="micro-min" step="1" min="0" inputmode="numeric" placeholder="min" value="${m.min??''}" oninput="onMicroChange()"><span class="micro-unit">min</span></div></div>
+      <div class="micro-field"><label>Costo</label><div class="micro-input-wrap"><span class="micro-prefix">S/</span><input type="number" id="micro-sol" step="0.5" min="0" inputmode="decimal" placeholder="—" value="${m.sol??''}" oninput="onMicroChange()"></div></div>
     </div>
   </div>`;
 }
@@ -817,6 +824,24 @@ function getDistanceMatrix(oLat,oLon,dLat,dLon){
     });
   });
 }
+function getTransitInfo(oLat,oLon,dLat,dLon){
+  return new Promise((resolve)=>{
+    const svc=new google.maps.DistanceMatrixService();
+    svc.getDistanceMatrix({
+      origins:[new google.maps.LatLng(oLat,oLon)],
+      destinations:[new google.maps.LatLng(dLat,dLon)],
+      travelMode:google.maps.TravelMode.TRANSIT,
+      region:'PE'
+    },(resp,status)=>{
+      if(status==='OK'&&resp.rows[0].elements[0].status==='OK'){
+        const el=resp.rows[0].elements[0];
+        resolve({distKm: el.distance.value/1000, durMin: Math.round(el.duration.value/60)});
+      } else {
+        resolve(null); // Google no tiene esa ruta cubierta (típico con combis informales) — queda para carga manual
+      }
+    });
+  });
+}
 
 function hav(la1,lo1,la2,lo2){
   const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;
@@ -900,6 +925,11 @@ async function calcVoy(){
     durMin=Math.round(distVial/0.33);
   }
   renderVoy(distVial);
+  getTransitInfo(oLat,oLon,d.lat,d.lon).then(info=>{
+    aplicarTransitAMicrobus(info);
+    const micro=document.querySelector('.m1-card-micro');
+    if(micro)micro.outerHTML=buildMicroCard();
+  });
 }
 
 async function calcRecojo(){
@@ -922,6 +952,15 @@ async function calcRecojo(){
   const durBC=mBC?mBC.durMin:Math.round(dBC/0.33);
   distVial=dBC;
   renderRecojo(dAB,dBC,dAB+dBC,durAB,durBC);
+  Promise.all([
+    getTransitInfo(aLat,aLon,bC.lat,bC.lon),
+    getTransitInfo(bC.lat,bC.lon,cC.lat,cC.lon)
+  ]).then(([tAB,tBC])=>{
+    const info=(tAB&&tBC)?{distKm:tAB.distKm+tBC.distKm,durMin:tAB.durMin+tBC.durMin}:null;
+    aplicarTransitAMicrobus(info);
+    const micro=document.querySelector('.m1-card-micro');
+    if(micro)micro.outerHTML=buildMicroCard();
+  });
 }
 
 function renderVoy(dist){
@@ -983,7 +1022,7 @@ function renderVerdict(data){
 const rtState={auto:false,uber:false,cab:false,taxi:false};
 
 function buildM1Cards(data){
-  return'<div class="swipe-hint">👉 Deslizá para ver todas las opciones</div><div class="m1-cards">'+[
+  return'<div class="m1-cards">'+[
     {k:'auto',n:'Mi auto',ic:'ic-auto',em:'🚗',action:'maps'},
     {k:'uber',n:'Uber',ic:'ic-uber',em:'🔵',action:'uber'},
     {k:'cab',n:'Cabify',ic:'ic-cab',em:'🟡',action:'cabify'},
@@ -1004,7 +1043,7 @@ function buildM1Cards(data){
 }
 
 function buildRecojoCards(data){
-  return'<div class="swipe-hint">👉 Deslizá para ver todas las opciones</div><div class="route-cards">'+[
+  return'<div class="route-cards">'+[
     {k:'auto',n:'Mi auto (A→B→C)',ic:'ic-auto',em:'🚗',action:'maps-abc'},
     {k:'uber',n:'Uber (B→C)',ic:'ic-uber',em:'🔵',action:'uber-bc'},
     {k:'cab',n:'Cabify (B→C)',ic:'ic-cab',em:'🟡',action:'cab-bc'},
